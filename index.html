@@ -761,6 +761,14 @@
                     encrypted: { 'unknown': false },
                     defaultVersion: 'unknown'
                 },
+                x70l: {
+                    name: '捷途X70L',
+                    versions: ['26'],
+                    versionNames: { '26': '26款' },
+                    algorithms: { '26': 'serialNumber' },
+                    encrypted: { '26': false },
+                    defaultVersion: '26'
+                },
                 x90plus: {
                     name: 'X90/Plus/Pro/CDM',
                     versions: ['040x', 'unknown'],
@@ -869,7 +877,10 @@
                     countdown: 'none',
                     showSerialNumberInput: false,
                     calculate: function() {
-                        return { carPassword: '*#20220730#*', adbPassword: '无' };
+                        return { 
+                            carPassword1: '*#20220730#*', 
+                            carPassword2: '*#12040310#*' 
+                        };
                     }
                 },
                 serialNumber: {
@@ -888,7 +899,7 @@
                         } else {
                             return {
                                 carPassword: '*#20230730#*',
-                                adbPassword: '请输入序列号'
+                                adbPassword: 'xxxxxx'
                             };
                         }
                     }
@@ -977,10 +988,11 @@
                     countdown: 'hourly',
                     showSerialNumberInput: false,
                     calculate: function(params) {
-                        const { dateTimeNum } = params;
+                        const { dateTimeNum, hours } = params;
                         const adbFull = 230830 * dateTimeNum;
+                        const carFull = (230830 * dateTimeNum) - hours;
                         return {
-                            carPassword: '*#20230730#*',
+                            carPassword: `*#${(carFull % 1000000).toString().padStart(6, '0')}#*`,
                             adbPassword: (adbFull % 1000000).toString().padStart(6, '0')
                         };
                     }
@@ -1062,7 +1074,6 @@
                     btn.textContent = config.versionNames[ver] || ver;
                     btn.dataset.version = ver;
                     btn.addEventListener('click', function() {
-                        // 移除所有active
                         document.querySelectorAll('.version-btn').forEach(b => b.classList.remove('active'));
                         this.classList.add('active');
                         const selectedVersion = this.dataset.version;
@@ -1071,14 +1082,12 @@
                     versionButtonsContainer.appendChild(btn);
                 });
 
-                // 默认选中
                 if (selectDefault) {
                     const defaultBtn = versionButtonsContainer.querySelector(`.version-btn[data-version="${defaultVer}"]`);
                     if (defaultBtn) {
                         defaultBtn.classList.add('active');
                         handleVersionChange(defaultVer);
                     } else {
-                        // 如果没有匹配的默认版本，选中第一个
                         const firstBtn = versionButtonsContainer.querySelector('.version-btn');
                         if (firstBtn) {
                             firstBtn.classList.add('active');
@@ -1107,9 +1116,8 @@
                     if (currentAlgorithm.showSerialNumberInput) {
                         serialNumberGroup.style.display = 'block';
                         serialNumberInput.value = '';
-                        resultCard.style.display = 'none';
-                        algoBadge.style.display = 'none';
-                        clearCountdown();
+                        // 立即调用计算以显示固定密码和“请输入序列号”
+                        doCalculate();
                     } else {
                         serialNumberGroup.style.display = 'none';
                         serialNumberInput.value = '';
@@ -1173,7 +1181,6 @@
                     result = { carPassword: '计算错误', adbPassword: '计算错误' };
                 }
 
-                // 更新算法徽章
                 algoBadge.style.display = 'inline-block';
                 algoBadge.textContent = currentAlgorithm.name || currentAlgorithmName;
                 algoBadge.className = 'card-header-badge';
@@ -1183,15 +1190,12 @@
                     algoBadge.classList.add('active');
                 }
 
-                // 渲染结果
                 renderResult(result, currentAlgorithmName);
 
-                // 更新倒计时
                 currentCountdownType = currentAlgorithm.countdown || 'none';
                 updateCountdownDisplay(currentCountdownType, timeParams.now);
                 setupCountdown(currentCountdownType);
 
-                // 显示结果卡片
                 resultCard.style.display = 'block';
                 if (currentCountdownType !== 'none') {
                     resultBadge.style.display = 'inline-block';
@@ -1249,9 +1253,36 @@
                         ul.appendChild(li);
                     });
                     resultArea.appendChild(ul);
+                } else if (algoName === 'dashengFixed') {
+                    // 捷途大圣特殊处理：两个车机密码
+                    const passwords = [
+                        { label: '车机密码 ①', value: result.carPassword1 || '--' },
+                        { label: '车机密码 ②', value: result.carPassword2 || '--' }
+                    ];
+                    passwords.forEach(pw => {
+                        const item = document.createElement('div');
+                        item.className = 'result-item highlight';
+                        const label = document.createElement('span');
+                        label.className = 'result-label';
+                        label.textContent = pw.label;
+                        const val = document.createElement('span');
+                        val.className = 'result-value';
+                        val.textContent = pw.value;
+                        val.title = pw.value;
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'copy-btn';
+                        copyBtn.innerHTML = '📋';
+                        copyBtn.title = '复制' + pw.label;
+                        copyBtn.addEventListener('click', () => copyToClipboard(pw.value, copyBtn));
+                        item.appendChild(label);
+                        item.appendChild(val);
+                        item.appendChild(copyBtn);
+                        resultArea.appendChild(item);
+                    });
                 } else {
                     const carPw = result.carPassword || '--';
                     const adbPw = result.adbPassword || '--';
+                    const isSerialAlgo = (algoName === 'serialNumber');
 
                     const item1 = document.createElement('div');
                     item1.className = 'result-item highlight';
@@ -1275,7 +1306,7 @@
                     item2.className = 'result-item';
                     const label2 = document.createElement('span');
                     label2.className = 'result-label';
-                    label2.textContent = 'ADB密码';
+                    label2.textContent = isSerialAlgo ? 'ADB密码' : 'ADB密码';
                     const val2 = document.createElement('span');
                     val2.className = 'result-value' + (adbPw === '无' ? ' muted' : '') + (
                         currentCountdownType !== 'none' && adbPw !== '无' ? ' dynamic' : '');
@@ -1284,7 +1315,7 @@
                     const copy2 = document.createElement('button');
                     copy2.className = 'copy-btn';
                     copy2.innerHTML = '📋';
-                    copy2.title = '复制ADB密码';
+                    copy2.title = isSerialAlgo ? '复制ADB密码' : '复制ADB密码';
                     copy2.addEventListener('click', () => copyToClipboard(adbPw, copy2));
                     item2.appendChild(label2);
                     item2.appendChild(val2);
@@ -1297,7 +1328,7 @@
 
             // ==================== 复制到剪贴板 ====================
             function copyToClipboard(text, btnElement) {
-                if (!text || text === '无' || text === '请输入序列号' || text === '计算错误') return;
+                if (!text || text === '无' || text === '------' || text === '计算错误') return;
                 navigator.clipboard.writeText(text).then(() => {
                     if (btnElement) {
                         btnElement.classList.add('copied');
@@ -1408,14 +1439,11 @@
                 }
             });
 
+            // 序列号输入：实时计算，始终显示结果卡片
             serialNumberInput.addEventListener('input', function() {
                 this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
-                if (currentAlgorithm && currentAlgorithm.showSerialNumberInput && this.value.length >= 6) {
+                if (currentAlgorithm && currentAlgorithm.showSerialNumberInput) {
                     doCalculate();
-                } else if (this.value.length < 6 && currentAlgorithm && currentAlgorithm.showSerialNumberInput) {
-                    resultCard.style.display = 'none';
-                    algoBadge.style.display = 'none';
-                    clearCountdown();
                 }
             });
 
@@ -1428,10 +1456,9 @@
                 algoBadge.style.display = 'none';
                 countdownBar.style.display = 'none';
 
-                // 默认选中捷途旅行者/山海T2
                 carModelSelect.value = 'traveler';
                 currentCarModel = 'traveler';
-                updateVersionButtons('traveler', true); // 默认版本已在内部设置为'0407'并触发计算
+                updateVersionButtons('traveler', true);
             }
 
             init();
