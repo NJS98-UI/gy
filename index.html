@@ -244,6 +244,38 @@
             letter-spacing: 0.01em;
         }
 
+        /* 版本按钮组 */
+        .version-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .version-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+        .version-btn:hover {
+            border-color: #c5c5d8;
+            background: #fafbfc;
+        }
+        .version-btn.active {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+            box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.15);
+        }
+
         /* 按钮 */
         .btn {
             display: inline-flex;
@@ -539,6 +571,10 @@
                 font-size: 12px;
                 padding: 9px 16px;
             }
+            .version-btn {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
@@ -574,10 +610,8 @@
                 </select>
             </div>
             <div class="form-group" id="versionGroup" style="display:none;">
-                <label class="form-label" for="versionSelect">版本</label>
-                <select class="form-select" id="versionSelect">
-                    <option value="">-- 请选择版本 --</option>
-                </select>
+                <label class="form-label">版本</label>
+                <div class="version-buttons" id="versionButtons"></div>
             </div>
             <div class="form-group" id="serialNumberGroup" style="display:none;">
                 <label class="form-label" for="serialNumberInput">序列号（后6位）</label>
@@ -655,7 +689,8 @@
                         '0407': false,
                         'other': false,
                         'cdm': false
-                    }
+                    },
+                    defaultVersion: '0407'
                 },
                 ziyouzhe: {
                     name: '自由者/山海T1',
@@ -674,7 +709,8 @@
                         '11010x': false,
                         '01010x': false,
                         '000402': false
-                    }
+                    },
+                    defaultVersion: '11010x'
                 },
                 shanhal7: {
                     name: '山海L7/Plus/T9',
@@ -690,56 +726,64 @@
                     encrypted: {
                         'os10201': false,
                         'os1201000': false
-                    }
+                    },
+                    defaultVersion: 'os1201000'
                 },
                 shanhal9: {
                     name: '山海L9',
                     versions: ['unknown'],
                     versionNames: { 'unknown': '其他版本' },
                     algorithms: { 'unknown': 'otherCars' },
-                    encrypted: { 'unknown': false }
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
                 },
                 fengyunA9: {
                     name: '风云A9/T9',
                     versions: ['unknown'],
                     versionNames: { 'unknown': '其他版本' },
                     algorithms: { 'unknown': 'serialNumberDaily' },
-                    encrypted: { 'unknown': false }
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
                 },
                 hu8: {
                     name: '虎8/8L',
                     versions: ['unknown'],
                     versionNames: { 'unknown': '其他版本' },
                     algorithms: { 'unknown': 'serialNumberDaily' },
-                    encrypted: { 'unknown': false }
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
                 },
                 x70plus: {
                     name: 'X70Plus/L/Pro/CDM',
                     versions: ['unknown'],
                     versionNames: { 'unknown': '00.01.0x' },
                     algorithms: { 'unknown': 'otherCars' },
-                    encrypted: { 'unknown': false }
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
                 },
                 x90plus: {
                     name: 'X90/Plus/Pro/CDM',
                     versions: ['040x', 'unknown'],
                     versionNames: { '040x': '04.0x', 'unknown': '其他版本' },
                     algorithms: { '040x': 'fixed', 'unknown': 'otherCars' },
-                    encrypted: { '040x': false, 'unknown': false }
+                    encrypted: { '040x': false, 'unknown': false },
+                    defaultVersion: '040x'
                 },
                 x95: {
                     name: 'X95',
                     versions: ['unknown'],
                     versionNames: { 'unknown': '其他版本' },
                     algorithms: { 'unknown': 'otherCars' },
-                    encrypted: { 'unknown': false }
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
                 },
                 dasheng: {
                     name: '捷途大圣',
                     versions: ['fixed'],
                     versionNames: { 'fixed': '固定口令' },
                     algorithms: { 'fixed': 'dashengFixed' },
-                    encrypted: { 'fixed': false }
+                    encrypted: { 'fixed': false },
+                    defaultVersion: 'fixed'
                 }
             };
 
@@ -972,7 +1016,7 @@
 
             // ==================== DOM元素 ====================
             const carModelSelect = document.getElementById('carModelSelect');
-            const versionSelect = document.getElementById('versionSelect');
+            const versionButtonsContainer = document.getElementById('versionButtons');
             const versionGroup = document.getElementById('versionGroup');
             const serialNumberGroup = document.getElementById('serialNumberGroup');
             const serialNumberInput = document.getElementById('serialNumberInput');
@@ -1002,20 +1046,82 @@
                 }
             }
 
-            // ==================== 更新版本下拉框 ====================
-            function updateVersionSelect(carModelKey) {
-                versionSelect.innerHTML = '<option value="">-- 请选择版本 --</option>';
+            // ==================== 更新版本按钮组 ====================
+            function updateVersionButtons(carModelKey, selectDefault = true) {
+                versionButtonsContainer.innerHTML = '';
                 if (!carModelKey || !carModels[carModelKey]) {
                     versionGroup.style.display = 'none';
                     return;
                 }
                 const config = carModels[carModelKey];
                 versionGroup.style.display = 'block';
-                for (const ver of config.versions) {
-                    const option = document.createElement('option');
-                    option.value = ver;
-                    option.textContent = config.versionNames[ver] || ver;
-                    versionSelect.appendChild(option);
+                const defaultVer = config.defaultVersion || config.versions[0];
+                config.versions.forEach(ver => {
+                    const btn = document.createElement('button');
+                    btn.className = 'version-btn';
+                    btn.textContent = config.versionNames[ver] || ver;
+                    btn.dataset.version = ver;
+                    btn.addEventListener('click', function() {
+                        // 移除所有active
+                        document.querySelectorAll('.version-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const selectedVersion = this.dataset.version;
+                        handleVersionChange(selectedVersion);
+                    });
+                    versionButtonsContainer.appendChild(btn);
+                });
+
+                // 默认选中
+                if (selectDefault) {
+                    const defaultBtn = versionButtonsContainer.querySelector(`.version-btn[data-version="${defaultVer}"]`);
+                    if (defaultBtn) {
+                        defaultBtn.classList.add('active');
+                        handleVersionChange(defaultVer);
+                    } else {
+                        // 如果没有匹配的默认版本，选中第一个
+                        const firstBtn = versionButtonsContainer.querySelector('.version-btn');
+                        if (firstBtn) {
+                            firstBtn.classList.add('active');
+                            handleVersionChange(firstBtn.dataset.version);
+                        }
+                    }
+                }
+            }
+
+            // ==================== 版本切换处理 ====================
+            function handleVersionChange(versionKey) {
+                currentVersion = versionKey;
+                if (!currentCarModel || !currentVersion) {
+                    currentAlgorithmName = null;
+                    currentAlgorithm = null;
+                    serialNumberGroup.style.display = 'none';
+                    resultCard.style.display = 'none';
+                    algoBadge.style.display = 'none';
+                    clearCountdown();
+                    return;
+                }
+                const algoInfo = getAlgorithmInfo(currentCarModel, currentVersion);
+                if (algoInfo) {
+                    currentAlgorithmName = algoInfo.name;
+                    currentAlgorithm = algoInfo.algorithm;
+                    if (currentAlgorithm.showSerialNumberInput) {
+                        serialNumberGroup.style.display = 'block';
+                        serialNumberInput.value = '';
+                        resultCard.style.display = 'none';
+                        algoBadge.style.display = 'none';
+                        clearCountdown();
+                    } else {
+                        serialNumberGroup.style.display = 'none';
+                        serialNumberInput.value = '';
+                        doCalculate();
+                    }
+                } else {
+                    currentAlgorithmName = null;
+                    currentAlgorithm = null;
+                    serialNumberGroup.style.display = 'none';
+                    resultCard.style.display = 'none';
+                    algoBadge.style.display = 'none';
+                    clearCountdown();
                 }
             }
 
@@ -1103,7 +1209,6 @@
                 resultArea.innerHTML = '';
 
                 if (algoName === 'otherCars' && result.passwords && Array.isArray(result.passwords)) {
-                    // otherCars算法返回密码列表
                     const filtered = result.passwords.filter(p => p !== '--');
                     const ul = document.createElement('ul');
                     ul.className = 'password-list';
@@ -1145,11 +1250,9 @@
                     });
                     resultArea.appendChild(ul);
                 } else {
-                    // 标准算法返回carPassword和adbPassword
                     const carPw = result.carPassword || '--';
                     const adbPw = result.adbPassword || '--';
 
-                    // 车机密码
                     const item1 = document.createElement('div');
                     item1.className = 'result-item highlight';
                     const label1 = document.createElement('span');
@@ -1168,7 +1271,6 @@
                     item1.appendChild(val1);
                     item1.appendChild(copy1);
 
-                    // ADB密码
                     const item2 = document.createElement('div');
                     item2.className = 'result-item';
                     const label2 = document.createElement('span');
@@ -1207,7 +1309,6 @@
                     }
                     showToast('已复制到剪贴板', 'success');
                 }).catch(() => {
-                    // 降级方案
                     const ta = document.createElement('textarea');
                     ta.value = text;
                     ta.style.position = 'fixed';
@@ -1259,7 +1360,6 @@
                 const updateFn = () => {
                     const now = new Date();
                     updateCountdownDisplay(type, now);
-                    // 检查是否需要重新计算
                     if (type === 'hourly' && now.getMinutes() === 0 && now.getSeconds() === 0) {
                         doCalculate();
                     }
@@ -1295,55 +1395,20 @@
                 currentVersion = null;
                 currentAlgorithmName = null;
                 currentAlgorithm = null;
-                updateVersionSelect(carModelKey);
                 serialNumberGroup.style.display = 'none';
                 serialNumberInput.value = '';
                 resultCard.style.display = 'none';
                 algoBadge.style.display = 'none';
                 clearCountdown();
-            });
-
-            versionSelect.addEventListener('change', function() {
-                const versionKey = this.value;
-                currentVersion = versionKey || null;
-                if (!currentCarModel || !currentVersion) {
-                    currentAlgorithmName = null;
-                    currentAlgorithm = null;
-                    serialNumberGroup.style.display = 'none';
-                    resultCard.style.display = 'none';
-                    algoBadge.style.display = 'none';
-                    clearCountdown();
-                    return;
-                }
-                const algoInfo = getAlgorithmInfo(currentCarModel, currentVersion);
-                if (algoInfo) {
-                    currentAlgorithmName = algoInfo.name;
-                    currentAlgorithm = algoInfo.algorithm;
-                    // 显示/隐藏序列号输入
-                    if (currentAlgorithm.showSerialNumberInput) {
-                        serialNumberGroup.style.display = 'block';
-                        serialNumberInput.value = '';
-                        resultCard.style.display = 'none';
-                        algoBadge.style.display = 'none';
-                        clearCountdown();
-                    } else {
-                        serialNumberGroup.style.display = 'none';
-                        serialNumberInput.value = '';
-                        doCalculate();
-                    }
+                if (currentCarModel) {
+                    updateVersionButtons(currentCarModel, true);
                 } else {
-                    currentAlgorithmName = null;
-                    currentAlgorithm = null;
-                    serialNumberGroup.style.display = 'none';
-                    resultCard.style.display = 'none';
-                    algoBadge.style.display = 'none';
-                    clearCountdown();
+                    versionGroup.style.display = 'none';
+                    versionButtonsContainer.innerHTML = '';
                 }
             });
 
-            // 序列号输入实时计算
             serialNumberInput.addEventListener('input', function() {
-                // 只允许数字
                 this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
                 if (currentAlgorithm && currentAlgorithm.showSerialNumberInput && this.value.length >= 6) {
                     doCalculate();
@@ -1362,11 +1427,15 @@
                 resultCard.style.display = 'none';
                 algoBadge.style.display = 'none';
                 countdownBar.style.display = 'none';
+
+                // 默认选中捷途旅行者/山海T2
+                carModelSelect.value = 'traveler';
+                currentCarModel = 'traveler';
+                updateVersionButtons('traveler', true); // 默认版本已在内部设置为'0407'并触发计算
             }
 
             init();
 
-            // ==================== 页面可见性变化时刷新倒计时 ====================
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden && currentAlgorithm && resultCard.style.display !== 'none') {
                     doCalculate();
