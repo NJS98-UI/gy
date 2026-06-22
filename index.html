@@ -586,7 +586,7 @@
             <div class="navbar-icon">🔐</div>
             <div class="navbar-title-group">
                 <span class="navbar-title">车载工程模式口令生成器</span>
-                <span class="navbar-subtitle">工具作者:傲慢与偏见  算法提供:久伴</span>
+                <span class="navbar-subtitle">工具作者:傲慢与偏见   算法提供:久º｜伴º</span>
             </div>
         </div>
     </nav>
@@ -616,7 +616,7 @@
             <div class="form-group" id="serialNumberGroup" style="display:none;">
                 <label class="form-label" id="serialLabel" for="serialNumberInput">序列号（后6位）</label>
                 <input type="text" class="form-input" id="serialNumberInput" placeholder="请输入序列号后6位数字" maxlength="6" inputmode="numeric" pattern="[0-9]*">
-                <div class="form-hint">仅序列号算法需要，输入后自动计算</div>
+                <div class="form-hint">输入6位数自动生成</div>
             </div>
         </div>
 
@@ -740,7 +740,7 @@
                 fengyunA9: {
                     name: '风云A9/T9',
                     versions: ['unknown'],
-                    versionNames: { 'unknown': '其他版本' },
+                    versionNames: { 'unknown': '其他版本算法未正确' },
                     algorithms: { 'unknown': 'serialNumberDaily' },
                     encrypted: { 'unknown': false },
                     defaultVersion: 'unknown'
@@ -765,8 +765,8 @@
                     name: '瑞虎8PRO冠军版',
                     versions: ['pre3', 'post3'],
                     versionNames: {
-                        'pre3': '3.0以前',
-                        'post3': '3.0及以后'
+                        'pre3': '2.0',
+                        'post3': '3.0及以上'
                     },
                     algorithms: {
                         'pre3': 'ruihu8proPre3',
@@ -950,13 +950,13 @@
                         const { year, month, date } = params;
                         const adbPassword = calculateHu8DailyPassword(year, month, date);
                         return {
-                            carPassword: '设置- 系统-空白处点8下进入',
+                            carPassword: '设置-系统-空白处点8下进入',
                             adbPassword: adbPassword
                         };
                     }
                 },
                 ruihu8proPre3: {
-                    name: '瑞虎8PRO冠军版(3.0以前)',
+                    name: '瑞虎8PRO冠军版(2.0)',
                     countdown: 'daily',
                     showSerialNumberInput: true,
                     useVin: true,
@@ -987,7 +987,7 @@
                     }
                 },
                 ruihu8proPost3: {
-                    name: '瑞虎8PRO冠军版(3.0及以后)',
+                    name: '瑞虎8PRO冠军版(3.0及以上)',
                     countdown: 'daily',
                     showSerialNumberInput: true,
                     useVin: true,
@@ -1216,7 +1216,7 @@
                     currentAlgorithm = algoInfo.algorithm;
                     // 设置序列号/VIN输入标签
                     if (currentAlgorithm.useVin) {
-                        serialLabel.textContent = 'VIN后6位';
+                        serialLabel.textContent = 'VIN后6位（车架号）';
                         serialNumberInput.placeholder = '请输入VIN后6位';
                     } else {
                         serialLabel.textContent = '序列号（后6位）';
@@ -1600,7 +1600,7 @@
                 }
             });
 
-            console.log('✅ 车载工程模式口令生成器已就绪');
+            console.log('车载工程模式口令生成器已就绪');
             console.log('  支持车型：' + Object.values(carModels).map(c => c.name).join('、'));
         })();
     </script>
