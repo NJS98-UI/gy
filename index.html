@@ -1321,7 +1321,7 @@
 
                     const labels = [];
                     if (currentCarModel === 'ziyouzhe' && currentVersion === '11010x') {
-                        labels.push('车机密码', 'ADB密码');
+                        labels.push('工程模式', '加密项');
                     } else if (currentCarModel === 'shanhal7') {
                         labels.push('固定密码1', '每日密码', '动态密码');
                     } else {
@@ -1357,8 +1357,8 @@
                     resultArea.appendChild(ul);
                 } else if (algoName === 'dashengFixed') {
                     const passwords = [
-                        { label: '车机密码 ①', value: result.carPassword1 || '--' },
-                        { label: '车机密码 ②', value: result.carPassword2 || '--' }
+                        { label: '工程模式 ①', value: result.carPassword1 || '--' },
+                        { label: '工程模式 ②', value: result.carPassword2 || '--' }
                     ];
                     passwords.forEach(pw => {
                         const item = document.createElement('div');
@@ -1381,11 +1381,12 @@
                         resultArea.appendChild(item);
                     });
                 } else if (algoName.startsWith('ruihu8pro')) {
-                    // 瑞虎8PRO冠军版特殊渲染
+                    // 瑞虎8PRO冠军版特殊渲染：增加升级入口
                     const items = [
-                        { label: '进入方式', value: result.carPassword || '设置-系统-空白处点8下进入', copy: false },
-                        { label: 'ADB密码', value: result.systemPassword || '--', copy: true },
-                        { label: '车辆升级密码', value: result.upgradePassword || '请输入VIN', copy: true }
+                        { label: '工程模式', value: '设置-系统-空白处点8下进入', copy: false },
+                        { label: '升级模式', value: '设置-系统升级-当前已是最新版点8下', copy: false },
+                        { label: '加密项', value: result.systemPassword || '--', copy: true },
+                        { label: '升级密码', value: result.upgradePassword || '请输入VIN', copy: true }
                     ];
                     items.forEach(item => {
                         const div = document.createElement('div');
@@ -1418,7 +1419,7 @@
                     item1.className = 'result-item highlight';
                     const label1 = document.createElement('span');
                     label1.className = 'result-label';
-                    label1.textContent = '车机密码';
+                    label1.textContent = '工程模式';
                     const val1 = document.createElement('span');
                     val1.className = 'result-value' + (currentCountdownType !== 'none' ? ' dynamic' : '');
                     val1.textContent = carPw;
@@ -1426,7 +1427,7 @@
                     const copy1 = document.createElement('button');
                     copy1.className = 'copy-btn';
                     copy1.innerHTML = '📋';
-                    copy1.title = '复制车机密码';
+                    copy1.title = '复制工程模式';
                     copy1.addEventListener('click', () => copyToClipboard(carPw, copy1));
                     item1.appendChild(label1);
                     item1.appendChild(val1);
@@ -1436,7 +1437,7 @@
                     item2.className = 'result-item';
                     const label2 = document.createElement('span');
                     label2.className = 'result-label';
-                    label2.textContent = isSerialAlgo ? 'ADB密码' : 'ADB密码';
+                    label2.textContent = isSerialAlgo ? '加密项' : '加密项';
                     const val2 = document.createElement('span');
                     val2.className = 'result-value' + (adbPw === '无' ? ' muted' : '') + (
                         currentCountdownType !== 'none' && adbPw !== '无' ? ' dynamic' : '');
@@ -1445,7 +1446,7 @@
                     const copy2 = document.createElement('button');
                     copy2.className = 'copy-btn';
                     copy2.innerHTML = '📋';
-                    copy2.title = isSerialAlgo ? '复制ADB密码' : '复制ADB密码';
+                    copy2.title = isSerialAlgo ? '复制加密项' : '复制加密项';
                     copy2.addEventListener('click', () => copyToClipboard(adbPw, copy2));
                     item2.appendChild(label2);
                     item2.appendChild(val2);
