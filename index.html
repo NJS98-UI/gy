@@ -614,7 +614,7 @@
                 <div class="version-buttons" id="versionButtons"></div>
             </div>
             <div class="form-group" id="serialNumberGroup" style="display:none;">
-                <label class="form-label" for="serialNumberInput">序列号（后6位）</label>
+                <label class="form-label" id="serialLabel" for="serialNumberInput">序列号（后6位）</label>
                 <input type="text" class="form-input" id="serialNumberInput" placeholder="请输入序列号后6位数字" maxlength="6" inputmode="numeric" pattern="[0-9]*">
                 <div class="form-hint">仅序列号算法需要，输入后自动计算</div>
             </div>
@@ -761,6 +761,23 @@
                     encrypted: { 'unknown': false },
                     defaultVersion: 'unknown'
                 },
+                ruihu8pro: {
+                    name: '瑞虎8PRO冠军版',
+                    versions: ['pre3', 'post3'],
+                    versionNames: {
+                        'pre3': '3.0以前',
+                        'post3': '3.0及以后'
+                    },
+                    algorithms: {
+                        'pre3': 'ruihu8proPre3',
+                        'post3': 'ruihu8proPost3'
+                    },
+                    encrypted: {
+                        'pre3': false,
+                        'post3': false
+                    },
+                    defaultVersion: 'post3'
+                },
                 x70plus: {
                     name: 'X70Plus/L/Pro/CDM',
                     versions: ['unknown'],
@@ -816,44 +833,22 @@
                 const lastDigit = yymmdd % 10;
                 let baseValue;
                 switch (lastDigit) {
-                    case 0:
-                        baseValue = 213518;
-                        break;
-                    case 1:
-                        baseValue = 658035;
-                        break;
-                    case 2:
-                        baseValue = 235657;
-                        break;
-                    case 3:
-                        baseValue = 567534;
-                        break;
-                    case 4:
-                        baseValue = 647825;
-                        break;
-                    case 5:
-                        baseValue = 234700;
-                        break;
-                    case 6:
-                        baseValue = 127347;
-                        break;
-                    case 7:
-                        baseValue = 875634;
-                        break;
-                    case 8:
-                        baseValue = 345678;
-                        break;
-                    case 9:
-                        baseValue = 982345;
-                        break;
-                    default:
-                        baseValue = 213518;
+                    case 0: baseValue = 213518; break;
+                    case 1: baseValue = 658035; break;
+                    case 2: baseValue = 235657; break;
+                    case 3: baseValue = 567534; break;
+                    case 4: baseValue = 647825; break;
+                    case 5: baseValue = 234700; break;
+                    case 6: baseValue = 127347; break;
+                    case 7: baseValue = 875634; break;
+                    case 8: baseValue = 345678; break;
+                    case 9: baseValue = 982345; break;
+                    default: baseValue = 213518;
                 }
                 const adbFull = yymmdd + baseValue;
                 return (adbFull % 1000000).toString().padStart(6, '0');
             }
 
-            // 虎8/8L、瑞虎9x 新每日密码计算（常量表不同）
             function calculateHu8DailyPassword(year, month, date) {
                 const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
                 const lastDigit = yymmdd % 10;
@@ -957,6 +952,68 @@
                         return {
                             carPassword: '设置- 系统-空白处点8下进入',
                             adbPassword: adbPassword
+                        };
+                    }
+                },
+                ruihu8proPre3: {
+                    name: '瑞虎8PRO冠军版(3.0以前)',
+                    countdown: 'daily',
+                    showSerialNumberInput: true,
+                    useVin: true,
+                    calculate: function(params) {
+                        const { year, month, date, serialNumber } = params;
+                        // 系统设置工程模式密码固定
+                        const systemPassword = '1q2w3e';
+                        // 车辆升级工程模式密码
+                        let upgradePassword = '请输入VIN';
+                        if (serialNumber && serialNumber.length >= 6) {
+                            const vinLast6 = serialNumber.slice(-6);
+                            let vinNumStr = '';
+                            for (let ch of vinLast6) {
+                                if (/[0-9]/.test(ch)) vinNumStr += ch;
+                                else vinNumStr += '0';
+                            }
+                            const vinNum = parseInt(vinNumStr, 10);
+                            const base = vinNum + 123456;
+                            const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
+                            const result = (base * yymmdd) % 1000000;
+                            upgradePassword = result.toString().padStart(6, '0');
+                        }
+                        return {
+                            carPassword: '设置-系统-空白处点8下进入',
+                            systemPassword: systemPassword,
+                            upgradePassword: upgradePassword
+                        };
+                    }
+                },
+                ruihu8proPost3: {
+                    name: '瑞虎8PRO冠军版(3.0及以后)',
+                    countdown: 'daily',
+                    showSerialNumberInput: true,
+                    useVin: true,
+                    calculate: function(params) {
+                        const { year, month, date, serialNumber } = params;
+                        // 系统设置工程模式密码每日动态
+                        const systemPassword = calculateSerialNumberDailyPassword(year, month, date);
+                        // 车辆升级工程模式密码
+                        let upgradePassword = '请输入VIN';
+                        if (serialNumber && serialNumber.length >= 6) {
+                            const vinLast6 = serialNumber.slice(-6);
+                            let vinNumStr = '';
+                            for (let ch of vinLast6) {
+                                if (/[0-9]/.test(ch)) vinNumStr += ch;
+                                else vinNumStr += '0';
+                            }
+                            const vinNum = parseInt(vinNumStr, 10);
+                            const base = vinNum + 123456;
+                            const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
+                            const result = (base * yymmdd) % 1000000;
+                            upgradePassword = result.toString().padStart(6, '0');
+                        }
+                        return {
+                            carPassword: '设置-系统-空白处点8下进入',
+                            systemPassword: systemPassword,
+                            upgradePassword: upgradePassword
                         };
                     }
                 },
@@ -1075,6 +1132,7 @@
             const versionGroup = document.getElementById('versionGroup');
             const serialNumberGroup = document.getElementById('serialNumberGroup');
             const serialNumberInput = document.getElementById('serialNumberInput');
+            const serialLabel = document.getElementById('serialLabel');
             const resultCard = document.getElementById('resultCard');
             const resultArea = document.getElementById('resultArea');
             const resultBadge = document.getElementById('resultBadge');
@@ -1156,10 +1214,17 @@
                 if (algoInfo) {
                     currentAlgorithmName = algoInfo.name;
                     currentAlgorithm = algoInfo.algorithm;
+                    // 设置序列号/VIN输入标签
+                    if (currentAlgorithm.useVin) {
+                        serialLabel.textContent = 'VIN后6位';
+                        serialNumberInput.placeholder = '请输入VIN后6位';
+                    } else {
+                        serialLabel.textContent = '序列号（后6位）';
+                        serialNumberInput.placeholder = '请输入序列号后6位数字';
+                    }
                     if (currentAlgorithm.showSerialNumberInput) {
                         serialNumberGroup.style.display = 'block';
                         serialNumberInput.value = '';
-                        // 立即调用计算以显示固定密码和“请输入序列号”
                         doCalculate();
                     } else {
                         serialNumberGroup.style.display = 'none';
@@ -1224,14 +1289,8 @@
                     result = { carPassword: '计算错误', adbPassword: '计算错误' };
                 }
 
-                algoBadge.style.display = 'inline-block';
-                algoBadge.textContent = currentAlgorithm.name || currentAlgorithmName;
-                algoBadge.className = 'card-header-badge';
-                if (currentCountdownType === 'hourly' || currentCountdownType === 'daily') {
-                    algoBadge.classList.add('warning');
-                } else {
-                    algoBadge.classList.add('active');
-                }
+                // 不再显示算法徽章
+                algoBadge.style.display = 'none';
 
                 renderResult(result, currentAlgorithmName);
 
@@ -1297,7 +1356,6 @@
                     });
                     resultArea.appendChild(ul);
                 } else if (algoName === 'dashengFixed') {
-                    // 捷途大圣特殊处理：两个车机密码
                     const passwords = [
                         { label: '车机密码 ①', value: result.carPassword1 || '--' },
                         { label: '车机密码 ②', value: result.carPassword2 || '--' }
@@ -1321,6 +1379,35 @@
                         item.appendChild(val);
                         item.appendChild(copyBtn);
                         resultArea.appendChild(item);
+                    });
+                } else if (algoName.startsWith('ruihu8pro')) {
+                    // 瑞虎8PRO冠军版特殊渲染
+                    const items = [
+                        { label: '进入方式', value: result.carPassword || '设置-系统-空白处点8下进入', copy: false },
+                        { label: 'ADB密码', value: result.systemPassword || '--', copy: true },
+                        { label: '车辆升级密码', value: result.upgradePassword || '请输入VIN', copy: true }
+                    ];
+                    items.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'result-item highlight';
+                        const label = document.createElement('span');
+                        label.className = 'result-label';
+                        label.textContent = item.label;
+                        const val = document.createElement('span');
+                        val.className = 'result-value';
+                        val.textContent = item.value;
+                        val.title = item.value;
+                        div.appendChild(label);
+                        div.appendChild(val);
+                        if (item.copy) {
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.innerHTML = '📋';
+                            copyBtn.title = '复制' + item.label;
+                            copyBtn.addEventListener('click', () => copyToClipboard(item.value, copyBtn));
+                            div.appendChild(copyBtn);
+                        }
+                        resultArea.appendChild(div);
                     });
                 } else {
                     const carPw = result.carPassword || '--';
@@ -1482,9 +1569,9 @@
                 }
             });
 
-            // 序列号输入：实时计算，始终显示结果卡片
+            // 序列号/VIN输入：实时计算，始终显示结果卡片
             serialNumberInput.addEventListener('input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+                this.value = this.value.replace(/[^0-9a-zA-Z]/g, '').slice(0, 6);
                 if (currentAlgorithm && currentAlgorithm.showSerialNumberInput) {
                     doCalculate();
                 }
