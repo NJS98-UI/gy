@@ -948,7 +948,7 @@
                 shanhal9: {
                     name: '山海L9',
                     versions: ['unknown'],
-                    versionNames: { 'unknown': '其他版本' },
+                    versionNames: { 'unknown': '5.0以下' },
                     algorithms: { 'unknown': 'otherCars' },
                     encrypted: { 'unknown': false },
                     defaultVersion: 'unknown'
@@ -956,7 +956,7 @@
                 hu8: {
                     name: '虎8/8L',
                     versions: ['unknown', 'latest'],
-                    versionNames: { 'unknown': '其他版本', 'latest': '最新版本' },
+                    versionNames: { 'unknown': '5.0以下', 'latest': '7.0以上' },
                     algorithms: { 'unknown': 'hu8Daily', 'latest': 'ruihuRandomCode' },
                     encrypted: { 'unknown': false, 'latest': false },
                     defaultVersion: 'unknown'
@@ -964,7 +964,7 @@
                 ruihu9x: {
                     name: '瑞虎9x',
                     versions: ['unknown', 'latest'],
-                    versionNames: { 'unknown': '其他版本', 'latest': '最新版本' },
+                    versionNames: { 'unknown': '5.0以下', 'latest': '7.0以上' },
                     algorithms: { 'unknown': 'hu8Daily', 'latest': 'ruihuRandomCode' },
                     encrypted: { 'unknown': false, 'latest': false },
                     defaultVersion: 'unknown'
@@ -975,7 +975,7 @@
                     versionNames: {
                         'pre3': '2.0',
                         'post3': '3.0及以上',
-                        'latest': '最新版本'
+                        'latest': '7.0以上'
                     },
                     algorithms: {
                         'pre3': 'ruihu8proPre3',
@@ -988,6 +988,14 @@
                         'latest': false
                     },
                     defaultVersion: 'post3'
+                },
+                fengyunT9: {
+                    name: '风云T9',
+                    versions: ['latest'],
+                    versionNames: { 'latest': '7.0以上' },
+                    algorithms: { 'latest': 'ruihuRandomCode' },
+                    encrypted: { 'latest': false },
+                    defaultVersion: 'latest'
                 },
                 x70plus: {
                     name: 'X70Plus/L/Pro/CDM',
@@ -1008,7 +1016,7 @@
                 x90plus: {
                     name: 'X90/Plus/Pro/CDM',
                     versions: ['040x', 'unknown'],
-                    versionNames: { '040x': '04.0x', 'unknown': '其他版本' },
+                    versionNames: { '040x': '04.0x', 'unknown': '5.0以下' },
                     algorithms: { '040x': 'fixed', 'unknown': 'otherCars' },
                     encrypted: { '040x': false, 'unknown': false },
                     defaultVersion: '040x'
@@ -1016,7 +1024,7 @@
                 x95: {
                     name: 'X95',
                     versions: ['unknown'],
-                    versionNames: { 'unknown': '其他版本' },
+                    versionNames: { 'unknown': '5.0以下' },
                     algorithms: { 'unknown': 'otherCars' },
                     encrypted: { 'unknown': false },
                     defaultVersion: 'unknown'
@@ -1193,12 +1201,16 @@
                     calculate: function(params) {
                         const { serialNumber } = params;
                         if (serialNumber && serialNumber.length > 0) {
-                            const insertChars = ['A','b','C','d','E','f','G','h','I','j','K','l'];
+                            const insertChars = ['A','b','c','d','E','f','G','h','I','j','K','l'];
                             let result = '';
                             for (let i = 0; i < serialNumber.length; i++) {
                                 result += serialNumber[i];
                                 if (i < insertChars.length) {
-                                    result += insertChars[i];
+                                    let char = insertChars[i];
+                                    if (i >= 2 && parseInt(serialNumber[i], 10) % 2 === 0) {
+                                        char = char.toUpperCase();
+                                    }
+                                    result += char;
                                 }
                             }
                             result += '@@';
