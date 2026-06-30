@@ -198,6 +198,32 @@
             letter-spacing: 0.02em;
             text-transform: uppercase;
         }
+        /* 新增：车型行 flex 布局 */
+        .form-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .chery-entry-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 20px;
+            background: #fff;
+            border: 1.5px solid var(--accent);
+            color: var(--accent);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .chery-entry-btn:hover {
+            background: var(--accent-light);
+        }
         .form-select,
         .form-input {
             width: 100%;
@@ -522,6 +548,121 @@
             background: #1b5e20;
         }
 
+        /* ---------- 新增：奇瑞系列弹窗样式 ---------- */
+        .chery-pwd-overlay,
+        .disclaimer-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+        }
+        .chery-pwd-overlay.active,
+        .disclaimer-overlay.active {
+            display: flex;
+        }
+
+        .chery-pwd-modal,
+        .disclaimer-modal {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            width: 340px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .chery-pwd-modal h3,
+        .disclaimer-modal h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #1a1a2e;
+        }
+        .chery-pwd-modal p {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 18px;
+        }
+        .chery-pwd-modal input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 6px;
+            font-family: var(--font-mono);
+            transition: all var(--transition);
+            background: #fafbfc;
+        }
+        .chery-pwd-modal input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(74,108,247,0.08);
+        }
+        .chery-pwd-modal .btn-row,
+        .disclaimer-modal .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .chery-pwd-modal .btn,
+        .disclaimer-modal .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+        .chery-pwd-modal .btn-confirm,
+        .disclaimer-modal .btn-agree {
+            background: var(--accent-gradient);
+            color: #fff;
+        }
+        .chery-pwd-modal .btn-cancel,
+        .disclaimer-modal .btn-cancel {
+            background: #f0f0f5;
+            color: #666;
+        }
+        .chery-pwd-modal .error-msg {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* 免责声明内容 - 醒目的背景与部分变色 */
+        .disclaimer-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333; /* 基础文字颜色 */
+            background: #fff8e1; /* 浅黄背景 */
+            border: 1px solid #ffc107; /* 金色边框 */
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0 18px;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        .disclaimer-content .highlight-red {
+            color: #c0392b; /* 需要强调的红色字 */
+            font-weight: 600;
+        }
+        .disclaimer-content .highlight-blue {
+            color: #2980b9; /* 链接/QQ用蓝色 */
+            font-weight: 600;
+        }
+
         /* 响应式 */
         @media (max-width: 480px) {
             body {
@@ -594,6 +735,34 @@
     <!-- Toast提示 -->
     <div class="toast" id="toast"></div>
 
+    <!-- 新增：免责声明弹窗 -->
+    <div class="disclaimer-overlay" id="disclaimerModal">
+        <div class="disclaimer-modal">
+            <h3>⚠️ 免责声明</h3>
+            <div class="disclaimer-content">
+                温馨提示：该功能并非自带，功能为网页跳转，本模式为<span class="highlight-red">奇瑞瑞虎系列，风云系列</span>，每日算法以及随机码算法，车架号OTA升级包下载，<span class="highlight-red">捷途不能使用</span>，我没有车子，OTA是否能用我不知道，你可以看成一个免责声明，确认则同意，访问密码联系<span class="highlight-blue">QQ460290139</span>简单点！进行获取。
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeDisclaimer()">取消</button>
+                <button class="btn btn-agree" onclick="agreeDisclaimer()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：奇瑞系列密码验证弹窗 -->
+    <div class="chery-pwd-overlay" id="cheryPwdModal">
+        <div class="chery-pwd-modal">
+            <h3>🔒 奇瑞系列验证</h3>
+            <p>请输入密码以进入安全页面</p>
+            <input type="password" id="cheryPwdInput" placeholder="请输入密码" maxlength="10" onkeydown="if(event.key==='Enter')verifyCheryPassword()">
+            <div class="error-msg" id="cheryError">❌ 密码错误，请重试</div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeCheryModal()">取消</button>
+                <button class="btn btn-confirm" onclick="verifyCheryPassword()">确认</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 主容器 -->
     <div class="main-container">
         <!-- 车型选择卡片 -->
@@ -604,7 +773,10 @@
                 <span class="card-header-badge" id="algoBadge" style="display:none;"></span>
             </div>
             <div class="form-group">
-                <label class="form-label" for="carModelSelect">车型</label>
+                <div class="form-label-row">
+                    <label class="form-label" for="carModelSelect" style="margin-bottom:0;">车型</label>
+                    <button class="chery-entry-btn" onclick="openDisclaimer()" title="奇瑞系列专区">🔗 奇瑞系列</button>
+                </div>
                 <select class="form-select" id="carModelSelect">
                     <option value="">-- 请选择车型 --</option>
                 </select>
@@ -637,6 +809,50 @@
     </div>
 
     <script>
+        // ==================== 新增：免责声明 + 奇瑞密码逻辑 ====================
+        function openDisclaimer() {
+            document.getElementById('disclaimerModal').classList.add('active');
+        }
+        function closeDisclaimer() {
+            document.getElementById('disclaimerModal').classList.remove('active');
+        }
+        function agreeDisclaimer() {
+            closeDisclaimer();
+            showCheryPasswordModal();
+        }
+
+        function showCheryPasswordModal() {
+            document.getElementById('cheryPwdModal').classList.add('active');
+            document.getElementById('cheryPwdInput').value = '';
+            document.getElementById('cheryError').style.display = 'none';
+            setTimeout(() => document.getElementById('cheryPwdInput').focus(), 100);
+        }
+
+        function closeCheryModal() {
+            document.getElementById('cheryPwdModal').classList.remove('active');
+        }
+
+        function verifyCheryPassword() {
+            const input = document.getElementById('cheryPwdInput').value;
+            if (input === '4545') {
+                closeCheryModal();
+                window.open('https://pass.ixichen.com/?source_btm_token=a1128.b17614.c770171.d88956.ea222f965-c725-4873-9e64-de5aee94f87b&need_out_animation=right&finish_when_network_unavailable=false&bdx_monitor_append_params=%7B%22enter_from%22%3A%22im_safe_jump_to_web%22%7D&from_im=true&ug_route_out_customs_info=%7B%22cert_id%22%3A80963330%7D&disable_auto_expose=1&enable_webview_select_search=1&font_scale=1.0', '_blank');
+            } else {
+                document.getElementById('cheryError').style.display = 'block';
+                document.getElementById('cheryPwdInput').value = '';
+                document.getElementById('cheryPwdInput').focus();
+            }
+        }
+
+        // 点击弹窗背景关闭
+        document.getElementById('cheryPwdModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCheryModal();
+        });
+        document.getElementById('disclaimerModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDisclaimer();
+        });
+
+        // ==================== 原有功能代码（完整保留，未做任何删减） ====================
         (function() {
             // ==================== 固定口令配置表 ====================
             const fixedPasswords = {
