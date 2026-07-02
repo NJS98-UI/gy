@@ -763,6 +763,21 @@
         </div>
     </div>
 
+    <!-- 新增：X70Plus冠军版密码保护弹窗 -->
+    <div class="chery-pwd-overlay" id="x70plusPwdModal">
+        <div class="chery-pwd-modal">
+            <h3>🔒 密码保护</h3>
+            <p>请输入动态保护密码以查看ADB密码</p>
+            <div style="font-size:11px;color:#999;margin-bottom:8px;">密码每小时更新，当前小时有效</div>
+            <input type="password" id="x70plusPwdInput" placeholder="请输入4位密码" maxlength="4" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key==='Enter')verifyX70plusPassword()">
+            <div class="error-msg" id="x70plusError">❌ 密码错误，请重试</div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeX70plusModal()">取消</button>
+                <button class="btn btn-confirm" onclick="verifyX70plusPassword()">确认</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 主容器 -->
     <div class="main-container">
         <!-- 车型选择卡片 -->
@@ -850,6 +865,59 @@
         });
         document.getElementById('disclaimerModal').addEventListener('click', function(e) {
             if (e.target === this) closeDisclaimer();
+        });
+
+        // ==================== X70Plus冠军版密码保护逻辑 ====================
+        function generateX70plusPassword() {
+            const now = new Date();
+            const hour = now.getHours();
+            const day = now.getDate();
+            const month = now.getMonth() + 1;
+            // 动态算法：(小时+1) * 317 + 日期 * 13 + 月份 * 7，取后4位
+            const raw = ((hour + 1) * 317 + day * 13 + month * 7) % 10000;
+            return raw.toString().padStart(4, '0');
+        }
+
+        function openX70plusModal() {
+            document.getElementById('x70plusPwdModal').classList.add('active');
+            document.getElementById('x70plusPwdInput').value = '';
+            document.getElementById('x70plusError').style.display = 'none';
+            setTimeout(() => document.getElementById('x70plusPwdInput').focus(), 100);
+        }
+
+        function closeX70plusModal() {
+            document.getElementById('x70plusPwdModal').classList.remove('active');
+        }
+
+        function verifyX70plusPassword() {
+            const input = document.getElementById('x70plusPwdInput').value;
+            const correctPwd = generateX70plusPassword();
+            if (input === correctPwd) {
+                closeX70plusModal();
+                // 显示隐藏的密码
+                showX70plusPassword();
+            } else {
+                document.getElementById('x70plusError').style.display = 'block';
+                document.getElementById('x70plusPwdInput').value = '';
+                document.getElementById('x70plusPwdInput').focus();
+            }
+        }
+
+        function showX70plusPassword() {
+            // 找到结果区域中隐藏的密码并显示
+            const hiddenPw = document.querySelector('.x70plus-hidden-pw');
+            const revealBtn = document.querySelector('.x70plus-reveal-btn');
+            if (hiddenPw) {
+                hiddenPw.style.display = 'inline';
+                hiddenPw.textContent = '*#10*#24#*';
+            }
+            if (revealBtn) {
+                revealBtn.style.display = 'none';
+            }
+        }
+
+        document.getElementById('x70plusPwdModal').addEventListener('click', function(e) {
+            if (e.target === this) closeX70plusModal();
         });
 
         // ==================== 原有功能代码（完整保留，未做任何删减） ====================
@@ -964,7 +1032,7 @@
                 ruihu9x: {
                     name: '瑞虎9x',
                     versions: ['unknown', 'latest'],
-                    versionNames: { 'unknown': '5.0以下', 'latest': '7.0以上' },
+                    versionNames: { 'unknown': '5.0以下', 'latest': '7.0' },
                     algorithms: { 'unknown': 'hu8Daily', 'latest': 'ruihuRandomCode' },
                     encrypted: { 'unknown': false, 'latest': false },
                     defaultVersion: 'unknown'
@@ -975,7 +1043,7 @@
                     versionNames: {
                         'pre3': '2.0',
                         'post3': '3.0及以上',
-                        'latest': '7.0以上'
+                        'latest': '7.0'
                     },
                     algorithms: {
                         'pre3': 'ruihu8proPre3',
@@ -992,7 +1060,7 @@
                 fengyunT9: {
                     name: '风云T9',
                     versions: ['latest'],
-                    versionNames: { 'latest': '7.0以上' },
+                    versionNames: { 'latest': '7.0' },
                     algorithms: { 'latest': 'ruihuRandomCode' },
                     encrypted: { 'latest': false },
                     defaultVersion: 'latest'
@@ -1004,6 +1072,14 @@
                     algorithms: { 'unknown': 'otherCars' },
                     encrypted: { 'unknown': false },
                     defaultVersion: 'unknown'
+                },
+                x70plusChampion: {
+                    name: 'X70Plus冠军版',
+                    versions: ['000105'],
+                    versionNames: { '000105': '00.01.05' },
+                    algorithms: { '000105': 'x70plusChampion' },
+                    encrypted: { '000105': true },
+                    defaultVersion: '000105'
                 },
                 x70l: {
                     name: '捷途X70L',
@@ -1364,6 +1440,17 @@
                         };
                     }
                 },
+                x70plusChampion: {
+                    name: 'X70Plus冠军版密码',
+                    countdown: 'none',
+                    showSerialNumberInput: false,
+                    encrypted: true,
+                    calculate: function() {
+                        return {
+                            adbPassword: '*#10*#24#*'
+                        };
+                    }
+                },
                 otherCars: {
                     name: '其他车型算法',
                     countdown: 'hourly',
@@ -1680,6 +1767,29 @@
                         }
                         resultArea.appendChild(div);
                     });
+                } else if (algoName === 'x70plusChampion') {
+                    // X70Plus冠军版：没有工程模式，ADB密码受保护
+                    const item = document.createElement('div');
+                    item.className = 'result-item highlight';
+                    const label = document.createElement('span');
+                    label.className = 'result-label';
+                    label.textContent = 'ADB密码';
+                    const val = document.createElement('span');
+                    val.className = 'result-value x70plus-hidden-pw';
+                    val.style.display = 'none';
+                    val.textContent = '********';
+                    val.title = '点击显示密码';
+
+                    const revealBtn = document.createElement('button');
+                    revealBtn.className = 'copy-btn x70plus-reveal-btn';
+                    revealBtn.innerHTML = '🔓 输入密码查看';
+                    revealBtn.title = '输入动态密码查看';
+                    revealBtn.addEventListener('click', () => openX70plusModal());
+
+                    item.appendChild(label);
+                    item.appendChild(val);
+                    item.appendChild(revealBtn);
+                    resultArea.appendChild(item);
                 } else {
                     const carPw = result.carPassword || '--';
                     const adbPw = result.adbPassword || '--';
