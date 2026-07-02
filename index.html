@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车载工程模式口令生成器</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-secondary: #5a5a7a;
+            --text-muted: #999;
+            --border: #e8e8f0;
+            --border-focus: #c5c5d8;
+            --accent: #4a6cf7;
+            --accent-light: #eef1ff;
+            --accent-gradient: linear-gradient(135deg, #4a6cf7, #6e8efb);
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+            --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.05);
+            --radius-sm: 10px;
+            --radius: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 22px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+            background: #f0f2f5;
+            background-image:
+                radial-gradient(ellipse at 20% 10%, rgba(74, 108, 247, 0.04) 0%, transparent 55%),
+                radial-gradient(ellipse at 75% 60%, rgba(110, 142, 251, 0.03) 0%, transparent 55%),
+                radial-gradient(ellipse at 40% 85%, rgba(74, 108, 247, 0.03) 0%, transparent 50%);
+            min-height: 100vh;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 90px;
+            padding-bottom: 40px;
+        }
+
+        /* 顶部固定导航栏 - 毛玻璃效果 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: saturate(180%) blur(24px);
+            -webkit-backdrop-filter: saturate(180%) blur(24px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+            padding: 0 20px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+        }
+
+        .navbar-content {
+            max-width: 680px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .navbar-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(74, 108, 247, 0.25);
+        }
+
+        .navbar-title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: #1a1a2e;
+            white-space: nowrap;
+        }
+        .navbar-subtitle {
+            font-size: 11px;
+            font-weight: 500;
+            color: #8888a0;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .navbar-title-group {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        /* 主容器 */
+        .main-container {
+            width: 100%;
+            max-width: 620px;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px 22px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .card-header-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--accent-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .card-header-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            letter-spacing: -0.01em;
+        }
+        .card-header-badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #f5f5fa;
+            color: #777;
+            letter-spacing: 0.02em;
+        }
+        .card-header-badge.active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .card-header-badge.warning {
+            background: #fff8e1;
+            color: #e65100;
+        }
+
+        /* 表单元素 */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #5a5a7a;
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        /* 新增：车型行 flex 布局 */
+        .form-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .chery-entry-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 20px;
+            background: #fff;
+            border: 1.5px solid var(--accent);
+            color: var(--accent);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .chery-entry-btn:hover {
+            background: var(--accent-light);
+        }
+        .form-select,
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            color: #1a1a2e;
+            transition: all var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            outline: none;
+        }
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+        .form-input {
+            cursor: text;
+            font-family: var(--font-mono);
+            letter-spacing: 0.04em;
+        }
+        .form-select:hover,
+        .form-input:hover {
+            border-color: #c5c5d8;
+            background: #fff;
+        }
+        .form-select:focus,
+        .form-input:focus {
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.08);
+            outline: none;
+        }
+        .form-hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            letter-spacing: 0.01em;
+        }
+
+        /* 版本按钮组 */
+        .version-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .version-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+        .version-btn:hover {
+            border-color: #c5c5d8;
+            background: #fafbfc;
+        }
+        .version-btn.active {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+            box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.15);
+        }
+
+        /* 按钮 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            letter-spacing: 0.01em;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(74, 108, 247, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(74, 108, 247, 0.25);
+        }
+        .btn-outline {
+            background: #fff;
+            color: #4a6cf7;
+            border: 1.5px solid #d5d8f0;
+        }
+        .btn-outline:hover {
+            background: #f8f9ff;
+            border-color: #b8bce8;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 7px;
+            font-weight: 500;
+        }
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 10px;
+            border-radius: 6px;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+        }
+
+        /* 结果区域 */
+        .result-area {
+            margin-top: 10px;
+        }
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 16px;
+            background: #fafbfd;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            border: 1px solid #eef0f5;
+            transition: all var(--transition);
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+        .result-item.highlight {
+            background: #fdfdff;
+            border-color: #e0e4f8;
+            box-shadow: 0 0 0 1px rgba(74, 108, 247, 0.06);
+        }
+        .result-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
+            min-width: 55px;
+        }
+        .result-value {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            letter-spacing: 0.03em;
+            word-break: break-all;
+            flex: 1;
+            text-align: right;
+            user-select: all;
+        }
+        .result-value.muted {
+            color: #bbb;
+            font-weight: 400;
+        }
+        .result-value.dynamic {
+            color: #4a6cf7;
+        }
+        .copy-btn {
+            flex-shrink: 0;
+            opacity: 0.6;
+            transition: all var(--transition);
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            font-size: 13px;
+            color: #777;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .copy-btn:hover {
+            opacity: 1;
+            background: #f0f0f8;
+            border-color: #ddd;
+            color: #333;
+        }
+        .copy-btn.copied {
+            color: #27ae60;
+            border-color: #c8e6c9;
+            background: #e8f5e9;
+            opacity: 1;
+        }
+
+        /* 倒计时 */
+        .countdown-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: #fffdf7;
+            border-radius: var(--radius-sm);
+            border: 1px solid #f0e8d0;
+            font-size: 12px;
+            color: #8a7030;
+            margin-top: 10px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+        .countdown-bar .timer {
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: #c7850a;
+            font-size: 13px;
+        }
+        .countdown-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #f0c040;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.6);
+            }
+        }
+
+        /* 密码列表（otherCars） */
+        .password-list {
+            list-style: none;
+            padding: 0;
+        }
+        .password-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 14px;
+            background: #fafbfd;
+            border-radius: var(--radius-sm);
+            margin-bottom: 6px;
+            border: 1px solid #eef0f5;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .password-list li:last-child {
+            margin-bottom: 0;
+        }
+        .password-list .pw-index {
+            font-size: 10px;
+            font-weight: 700;
+            color: #aaa;
+            background: #f0f0f5;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            letter-spacing: 0;
+        }
+        .password-list .pw-value {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            flex: 1;
+            text-align: right;
+            word-break: break-all;
+            user-select: all;
+            letter-spacing: 0.03em;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #1a1a2e;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 200;
+            box-shadow: var(--shadow-xl);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            background: #1b5e20;
+        }
+
+        /* ---------- 新增：奇瑞系列弹窗样式 ---------- */
+        .chery-pwd-overlay,
+        .disclaimer-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+        }
+        .chery-pwd-overlay.active,
+        .disclaimer-overlay.active {
+            display: flex;
+        }
+
+        .chery-pwd-modal,
+        .disclaimer-modal {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            width: 340px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .chery-pwd-modal h3,
+        .disclaimer-modal h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #1a1a2e;
+        }
+        .chery-pwd-modal p {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 18px;
+        }
+        .chery-pwd-modal input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 6px;
+            font-family: var(--font-mono);
+            transition: all var(--transition);
+            background: #fafbfc;
+        }
+        .chery-pwd-modal input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(74,108,247,0.08);
+        }
+        .chery-pwd-modal .btn-row,
+        .disclaimer-modal .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .chery-pwd-modal .btn,
+        .disclaimer-modal .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+        .chery-pwd-modal .btn-confirm,
+        .disclaimer-modal .btn-agree {
+            background: var(--accent-gradient);
+            color: #fff;
+        }
+        .chery-pwd-modal .btn-cancel,
+        .disclaimer-modal .btn-cancel {
+            background: #f0f0f5;
+            color: #666;
+        }
+        .chery-pwd-modal .error-msg {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* 免责声明内容 - 醒目的背景与部分变色 */
+        .disclaimer-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333; /* 基础文字颜色 */
+            background: #fff8e1; /* 浅黄背景 */
+            border: 1px solid #ffc107; /* 金色边框 */
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0 18px;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        .disclaimer-content .highlight-red {
+            color: #c0392b; /* 需要强调的红色字 */
+            font-weight: 600;
+        }
+        .disclaimer-content .highlight-blue {
+            color: #2980b9; /* 链接/QQ用蓝色 */
+            font-weight: 600;
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            body {
+                padding-top: 76px;
+                padding-bottom: 24px;
+            }
+            .navbar {
+                height: 56px;
+                padding: 0 12px;
+            }
+            .navbar-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+            .navbar-title {
+                font-size: 15px;
+            }
+            .navbar-subtitle {
+                font-size: 10px;
+            }
+            .main-container {
+                padding: 0 10px;
+                gap: 10px;
+            }
+            .card {
+                padding: 16px 14px;
+                border-radius: var(--radius);
+            }
+            .form-select,
+            .form-input {
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+            .form-select {
+                padding-right: 30px;
+                background-position: right 10px center;
+            }
+            .result-value {
+                font-size: 13px;
+            }
+            .result-item {
+                padding: 10px 12px;
+            }
+            .btn {
+                font-size: 12px;
+                padding: 9px 16px;
+            }
+            .version-btn {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部固定导航栏 - 毛玻璃效果 -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-content">
+            <div class="navbar-icon">🔐</div>
+            <div class="navbar-title-group">
+                <span class="navbar-title">车载工程模式口令生成器</span>
+                <span class="navbar-subtitle">工具作者:傲慢与偏见   算法提供:久º｜伴º</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast提示 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 新增：免责声明弹窗 -->
+    <div class="disclaimer-overlay" id="disclaimerModal">
+        <div class="disclaimer-modal">
+            <h3>⚠️ 免责声明</h3>
+            <div class="disclaimer-content">
+                温馨提示：该功能并非自带，功能为网页跳转，本模式为<span class="highlight-red">奇瑞瑞虎系列，风云系列</span>，每日算法以及随机码算法，车架号OTA升级包下载，<span class="highlight-red">捷途不能使用</span>，我没有车子，OTA是否能用我不知道，你可以看成一个免责声明，确认则同意，访问密码联系<span class="highlight-blue">QQ460290139</span>简单点！进行获取。
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeDisclaimer()">取消</button>
+                <button class="btn btn-agree" onclick="agreeDisclaimer()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：奇瑞系列密码验证弹窗 -->
+    <div class="chery-pwd-overlay" id="cheryPwdModal">
+        <div class="chery-pwd-modal">
+            <h3>🔒 奇瑞系列验证</h3>
+            <p>请输入密码以进入安全页面</p>
+            <input type="password" id="cheryPwdInput" placeholder="请输入密码" maxlength="10" onkeydown="if(event.key==='Enter')verifyCheryPassword()">
+            <div class="error-msg" id="cheryError">❌ 密码错误，请重试</div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeCheryModal()">取消</button>
+                <button class="btn btn-confirm" onclick="verifyCheryPassword()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：X70Plus冠军版密码保护弹窗 -->
+    <div class="chery-pwd-overlay" id="x70plusPwdModal">
+        <div class="chery-pwd-modal">
+            <h3>🔒 密码保护</h3>
+            <p>请输入动态保护密码以查看ADB密码</p>
+            <div style="font-size:11px;color:#999;margin-bottom:8px;">密码每小时更新，当前小时有效</div>
+            <input type="password" id="x70plusPwdInput" placeholder="请输入4位密码" maxlength="4" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key==='Enter')verifyX70plusPassword()">
+            <div class="error-msg" id="x70plusError">❌ 密码错误，请重试</div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" onclick="closeX70plusModal()">取消</button>
+                <button class="btn btn-confirm" onclick="verifyX70plusPassword()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 车型选择卡片 -->
+        <div class="card" id="carSelectCard">
+            <div class="card-header">
+                <div class="card-header-icon">🚗</div>
+                <span class="card-header-title">选择车型与版本</span>
+                <span class="card-header-badge" id="algoBadge" style="display:none;"></span>
+            </div>
+            <div class="form-group">
+                <div class="form-label-row">
+                    <label class="form-label" for="carModelSelect" style="margin-bottom:0;">车型</label>
+                    <button class="chery-entry-btn" onclick="openDisclaimer()" title="奇瑞系列专区">🔗 奇瑞系列</button>
+                </div>
+                <select class="form-select" id="carModelSelect">
+                    <option value="">-- 请选择车型 --</option>
+                </select>
+            </div>
+            <div class="form-group" id="versionGroup" style="display:none;">
+                <label class="form-label">版本</label>
+                <div class="version-buttons" id="versionButtons"></div>
+            </div>
+            <div class="form-group" id="serialNumberGroup" style="display:none;">
+                <label class="form-label" id="serialLabel" for="serialNumberInput">序列号（后6位）</label>
+                <input type="text" class="form-input" id="serialNumberInput" placeholder="请输入序列号后6位数字" maxlength="6" inputmode="numeric" pattern="[0-9]*">
+                <div class="form-hint">输入6位数自动生成</div>
+            </div>
+        </div>
+
+        <!-- 结果卡片 -->
+        <div class="card" id="resultCard" style="display:none;">
+            <div class="card-header">
+                <div class="card-header-icon">📋</div>
+                <span class="card-header-title">生成结果</span>
+                <span class="card-header-badge active" id="resultBadge" style="display:none;">当前有效</span>
+            </div>
+            <div class="result-area" id="resultArea"></div>
+            <div class="countdown-bar" id="countdownBar" style="display:none;">
+                <span class="countdown-dot"></span>
+                <span>下次更新倒计时：</span>
+                <span class="timer" id="countdownTimer">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 新增：免责声明 + 奇瑞密码逻辑 ====================
+        function openDisclaimer() {
+            document.getElementById('disclaimerModal').classList.add('active');
+        }
+        function closeDisclaimer() {
+            document.getElementById('disclaimerModal').classList.remove('active');
+        }
+        function agreeDisclaimer() {
+            closeDisclaimer();
+            showCheryPasswordModal();
+        }
+
+        function showCheryPasswordModal() {
+            document.getElementById('cheryPwdModal').classList.add('active');
+            document.getElementById('cheryPwdInput').value = '';
+            document.getElementById('cheryError').style.display = 'none';
+            setTimeout(() => document.getElementById('cheryPwdInput').focus(), 100);
+        }
+
+        function closeCheryModal() {
+            document.getElementById('cheryPwdModal').classList.remove('active');
+        }
+
+        function verifyCheryPassword() {
+            const input = document.getElementById('cheryPwdInput').value;
+            if (input === '4545') {
+                closeCheryModal();
+                window.open('https://pass.ixichen.com/?source_btm_token=a1128.b17614.c770171.d88956.ea222f965-c725-4873-9e64-de5aee94f87b&need_out_animation=right&finish_when_network_unavailable=false&bdx_monitor_append_params=%7B%22enter_from%22%3A%22im_safe_jump_to_web%22%7D&from_im=true&ug_route_out_customs_info=%7B%22cert_id%22%3A80963330%7D&disable_auto_expose=1&enable_webview_select_search=1&font_scale=1.0', '_blank');
+            } else {
+                document.getElementById('cheryError').style.display = 'block';
+                document.getElementById('cheryPwdInput').value = '';
+                document.getElementById('cheryPwdInput').focus();
+            }
+        }
+
+        // 点击弹窗背景关闭
+        document.getElementById('cheryPwdModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCheryModal();
+        });
+        document.getElementById('disclaimerModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDisclaimer();
+        });
+
+        // ==================== X70Plus冠军版密码保护逻辑 ====================
+        function generateX70plusPassword() {
+            const now = new Date();
+            const hour = now.getHours();
+            const day = now.getDate();
+            const month = now.getMonth() + 1;
+            // 动态算法：(小时+1) * 317 + 日期 * 13 + 月份 * 7，取后4位
+            const raw = ((hour + 1) * 317 + day * 13 + month * 7) % 10000;
+            return raw.toString().padStart(4, '0');
+        }
+
+        function openX70plusModal() {
+            document.getElementById('x70plusPwdModal').classList.add('active');
+            document.getElementById('x70plusPwdInput').value = '';
+            document.getElementById('x70plusError').style.display = 'none';
+            setTimeout(() => document.getElementById('x70plusPwdInput').focus(), 100);
+        }
+
+        function closeX70plusModal() {
+            document.getElementById('x70plusPwdModal').classList.remove('active');
+        }
+
+        function verifyX70plusPassword() {
+            const input = document.getElementById('x70plusPwdInput').value;
+            const correctPwd = generateX70plusPassword();
+            if (input === correctPwd) {
+                closeX70plusModal();
+                // 显示隐藏的密码
+                showX70plusPassword();
+            } else {
+                document.getElementById('x70plusError').style.display = 'block';
+                document.getElementById('x70plusPwdInput').value = '';
+                document.getElementById('x70plusPwdInput').focus();
+            }
+        }
+
+        function showX70plusPassword() {
+            // 找到结果区域中隐藏的密码并显示
+            const hiddenPw = document.querySelector('.x70plus-hidden-pw');
+            const revealBtn = document.querySelector('.x70plus-reveal-btn');
+            if (hiddenPw) {
+                hiddenPw.style.display = 'inline';
+                hiddenPw.textContent = '*#10*#24#*';
+            }
+            if (revealBtn) {
+                revealBtn.style.display = 'none';
+            }
+        }
+
+        document.getElementById('x70plusPwdModal').addEventListener('click', function(e) {
+            if (e.target === this) closeX70plusModal();
+        });
+
+        // ==================== 原有功能代码（完整保留，未做任何删减） ====================
+        (function() {
+            // ==================== 固定口令配置表 ====================
+            const fixedPasswords = {
+                traveler: {
+                    '0406': '*#20230730#*'
+                },
+                dasheng: {
+                    'fixed': '*#20220730#*'
+                },
+                x70plus: {
+                    'unknown': '*#20201030#*'
+                },
+                x90plus: {
+                    '040x': '*#20230730#*',
+                    'unknown': '*#20201030#*'
+                },
+                x95: {
+                    'unknown': '*#20201030#*'
+                },
+                shanhal7: {
+                    'unknown': '*#20201030#*'
+                },
+                shanhal9: {
+                    'unknown': '*#20201030#*'
+                }
+            };
+
+            // ==================== 车型配置 ====================
+            const carModels = {
+                traveler: {
+                    name: '捷途旅行者/山海T2',
+                    versions: ['00x', '0406', '0407', 'other', 'cdm'],
+                    versionNames: {
+                        '00x': '00.08及以下',
+                        '0406': '4.06及以下',
+                        '0407': '4.07以上',
+                        'other': '其他',
+                        'cdm': '26款'
+                    },
+                    algorithms: {
+                        '00x': 'serialNumber',
+                        '0406': 'dynamic230830',
+                        '0407': 'dynamic250110',
+                        'other': 'serialNumberDaily',
+                        'cdm': 'dynamic250930'
+                    },
+                    encrypted: {
+                        '00x': false,
+                        '0406': false,
+                        '0407': false,
+                        'other': false,
+                        'cdm': false
+                    },
+                    defaultVersion: '0407'
+                },
+                ziyouzhe: {
+                    name: '自由者/山海T1',
+                    versions: ['11010x', '01010x', '000402'],
+                    versionNames: {
+                        '11010x': '11.01.04及以上',
+                        '01010x': '01.01.0x',
+                        '000402': '00.04.02'
+                    },
+                    algorithms: {
+                        '11010x': 'dynamic240910',
+                        '01010x': 'dynamic240910',
+                        '000402': 'ziyouzhe000402'
+                    },
+                    encrypted: {
+                        '11010x': false,
+                        '01010x': false,
+                        '000402': false
+                    },
+                    defaultVersion: '11010x'
+                },
+                shanhal7: {
+                    name: '山海L7/Plus/T9',
+                    versions: ['os10201', 'os1201000'],
+                    versionNames: {
+                        'os10201': 'OS1-02.01',
+                        'os1201000': 'OS1_20.10.00'
+                    },
+                    algorithms: {
+                        'os10201': 'otherCars',
+                        'os1201000': 'otherCars'
+                    },
+                    encrypted: {
+                        'os10201': false,
+                        'os1201000': false
+                    },
+                    defaultVersion: 'os1201000'
+                },
+                shanhal9: {
+                    name: '山海L9',
+                    versions: ['unknown'],
+                    versionNames: { 'unknown': '其他版本' },
+                    algorithms: { 'unknown': 'otherCars' },
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
+                },
+                hu8: {
+                    name: '虎8/8L',
+                    versions: ['unknown', 'latest'],
+                    versionNames: { 'unknown': '5.0以下', 'latest': '7.0以上' },
+                    algorithms: { 'unknown': 'hu8Daily', 'latest': 'ruihuRandomCode' },
+                    encrypted: { 'unknown': false, 'latest': false },
+                    defaultVersion: 'unknown'
+                },
+                ruihu9x: {
+                    name: '瑞虎9x',
+                    versions: ['unknown', 'latest'],
+                    versionNames: { 'unknown': '5.0以下', 'latest': '7.0' },
+                    algorithms: { 'unknown': 'hu8Daily', 'latest': 'ruihuRandomCode' },
+                    encrypted: { 'unknown': false, 'latest': false },
+                    defaultVersion: 'unknown'
+                },
+                ruihu8pro: {
+                    name: '瑞虎8PRO冠军版',
+                    versions: ['pre3', 'post3', 'latest'],
+                    versionNames: {
+                        'pre3': '2.0',
+                        'post3': '3.0及以上',
+                        'latest': '7.0'
+                    },
+                    algorithms: {
+                        'pre3': 'ruihu8proPre3',
+                        'post3': 'ruihu8proPost3',
+                        'latest': 'ruihuRandomCode'
+                    },
+                    encrypted: {
+                        'pre3': false,
+                        'post3': false,
+                        'latest': false
+                    },
+                    defaultVersion: 'post3'
+                },
+                fengyunT9: {
+                    name: '风云T9',
+                    versions: ['latest'],
+                    versionNames: { 'latest': '7.0' },
+                    algorithms: { 'latest': 'ruihuRandomCode' },
+                    encrypted: { 'latest': false },
+                    defaultVersion: 'latest'
+                },
+                x70plus: {
+                    name: 'X70Plus/L/Pro/CDM',
+                    versions: ['unknown'],
+                    versionNames: { 'unknown': '00.01.0x' },
+                    algorithms: { 'unknown': 'otherCars' },
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
+                },
+                x70plusChampion: {
+                    name: 'X70Plus冠军版',
+                    versions: ['000105'],
+                    versionNames: { '000105': '00.01.05' },
+                    algorithms: { '000105': 'x70plusChampion' },
+                    encrypted: { '000105': true },
+                    defaultVersion: '000105'
+                },
+                x70l: {
+                    name: '捷途X70L',
+                    versions: ['26'],
+                    versionNames: { '26': '26款' },
+                    algorithms: { '26': 'serialNumber' },
+                    encrypted: { '26': false },
+                    defaultVersion: '26'
+                },
+                x90plus: {
+                    name: 'X90/Plus/Pro/CDM',
+                    versions: ['040x', 'unknown'],
+                    versionNames: { '040x': '04.0x', 'unknown': '其他版本' },
+                    algorithms: { '040x': 'fixed', 'unknown': 'otherCars' },
+                    encrypted: { '040x': false, 'unknown': false },
+                    defaultVersion: '040x'
+                },
+                x95: {
+                    name: 'X95',
+                    versions: ['unknown'],
+                    versionNames: { 'unknown': '其他版本' },
+                    algorithms: { 'unknown': 'otherCars' },
+                    encrypted: { 'unknown': false },
+                    defaultVersion: 'unknown'
+                },
+                dasheng: {
+                    name: '捷途大圣',
+                    versions: ['fixed'],
+                    versionNames: { 'fixed': '固定口令' },
+                    algorithms: { 'fixed': 'dashengFixed' },
+                    encrypted: { 'fixed': false },
+                    defaultVersion: 'fixed'
+                }
+            };
+
+            // ==================== 辅助函数 ====================
+            function getFixedPassword(carModel, version) {
+                if (fixedPasswords[carModel] && fixedPasswords[carModel][version]) {
+                    return fixedPasswords[carModel][version];
+                }
+                return '*#20230730#*';
+            }
+
+            function calculateSerialNumberDailyPassword(year, month, date) {
+                const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
+                const lastDigit = yymmdd % 10;
+                let baseValue;
+                switch (lastDigit) {
+                    case 0: baseValue = 213518; break;
+                    case 1: baseValue = 658035; break;
+                    case 2: baseValue = 235657; break;
+                    case 3: baseValue = 567534; break;
+                    case 4: baseValue = 647825; break;
+                    case 5: baseValue = 234700; break;
+                    case 6: baseValue = 127347; break;
+                    case 7: baseValue = 875634; break;
+                    case 8: baseValue = 345678; break;
+                    case 9: baseValue = 982345; break;
+                    default: baseValue = 213518;
+                }
+                const adbFull = yymmdd + baseValue;
+                return (adbFull % 1000000).toString().padStart(6, '0');
+            }
+
+            function calculateHu8DailyPassword(year, month, date) {
+                const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
+                const lastDigit = yymmdd % 10;
+                let baseValue;
+                switch (lastDigit) {
+                    case 0: baseValue = 213518; break;
+                    case 1: baseValue = 658035; break;
+                    case 2: baseValue = 235657; break;
+                    case 3: baseValue = 567534; break;
+                    case 4: baseValue = 647825; break;
+                    case 5: baseValue = 234700; break;
+                    case 6: baseValue = 127347; break;
+                    case 7: baseValue = 648924; break;
+                    case 8: baseValue = 733782; break;
+                    case 9: baseValue = 553456; break;
+                    default: baseValue = 213518;
+                }
+                const adbFull = yymmdd + baseValue;
+                return (adbFull % 1000000).toString().padStart(6, '0');
+            }
+
+            function getCurrentTimeParams() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const date = String(now.getDate()).padStart(2, '0');
+                const hours = now.getHours();
+                const hoursStr = String(hours).padStart(2, '0');
+                const yearShort = String(year).slice(-2);
+                const dateTimeNum = parseInt(`${yearShort}${month}${date}${hoursStr}`, 10);
+                const mmddhh = parseInt(`${month}${date}${hoursStr}`, 10);
+                return { year, month, date, hours, dateTimeNum, mmddhh, now };
+            }
+
+            // ==================== 算法实现 ====================
+            const algorithms = {
+                fixed: {
+                    name: '固定口令',
+                    countdown: 'none',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { carModel, version } = params;
+                        return {
+                            carPassword: getFixedPassword(carModel, version),
+                            adbPassword: '无'
+                        };
+                    }
+                },
+                dashengFixed: {
+                    name: '捷途大圣固定口令',
+                    countdown: 'none',
+                    showSerialNumberInput: false,
+                    calculate: function() {
+                        return { 
+                            carPassword1: '*#20220730#*', 
+                            carPassword2: '*#12040310#*' 
+                        };
+                    }
+                },
+                serialNumber: {
+                    name: '序列号算法',
+                    countdown: 'none',
+                    showSerialNumberInput: true,
+                    calculate: function(params) {
+                        const { serialNumber } = params;
+                        if (serialNumber && serialNumber.length >= 6) {
+                            const snLastSix = serialNumber.slice(-6);
+                            const adbFull = 802018 * parseInt(snLastSix, 10);
+                            return {
+                                carPassword: '*#20230730#*',
+                                adbPassword: (adbFull % 1000000).toString().padStart(6, '0')
+                            };
+                        } else {
+                            return {
+                                carPassword: '*#20230730#*',
+                                adbPassword: 'xxxxxx'
+                            };
+                        }
+                    }
+                },
+                serialNumberDaily: {
+                    name: '序列号动态算法（每日更新）',
+                    countdown: 'daily',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { year, month, date } = params;
+                        const adbPassword = calculateSerialNumberDailyPassword(year, month, date);
+                        return {
+                            carPassword: '*#20230730#*',
+                            adbPassword: adbPassword
+                        };
+                    }
+                },
+                hu8Daily: {
+                    name: '虎8/瑞虎9x每日算法',
+                    countdown: 'daily',
+                    showSerialNumberInput: true,
+                    useVin: true,
+                    calculate: function(params) {
+                        const { year, month, date, serialNumber } = params;
+                        const adbPassword = calculateHu8DailyPassword(year, month, date);
+                        let upgradePassword = '请输入VIN';
+                        if (serialNumber && serialNumber.length >= 6) {
+                            const vinLast6 = serialNumber.slice(-6);
+                            let vinNumStr = '';
+                            for (let ch of vinLast6) {
+                                if (/[0-9]/.test(ch)) vinNumStr += ch;
+                                else vinNumStr += '0';
+                            }
+                            const vinNum = parseInt(vinNumStr, 10);
+                            const base = vinNum + 123456;
+                            const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
+                            const result = (base * yymmdd) % 1000000;
+                            upgradePassword = result.toString().padStart(6, '0');
+                        }
+                        return {
+                            carPassword: '设置-系统-空白处点8下进入',
+                            adbPassword: adbPassword,
+                            upgradeEntry: '设置-系统升级-当前已是最新版点8下',
+                            upgradePassword: upgradePassword
+                        };
+                    }
+                },
+                ruihuRandomCode: {
+                    name: '瑞虎随机码算法',
+                    countdown: 'none',
+                    showSerialNumberInput: true,
+                    useVin: false,
+                    labelText: '随机码',
+                    placeholder: '请输入随机码',
+                    calculate: function(params) {
+                        const { serialNumber } = params;
+                        if (serialNumber && serialNumber.length > 0) {
+                            const insertChars = ['A','b','c','d','E','f','G','h','I','j','K','l'];
+                            let result = '';
+                            for (let i = 0; i < serialNumber.length; i++) {
+                                result += serialNumber[i];
+                                if (i < insertChars.length) {
+                                    let char = insertChars[i];
+                                    if (i >= 2 && parseInt(serialNumber[i], 10) % 2 === 0) {
+                                        char = char.toUpperCase();
+                                    }
+                                    result += char;
+                                }
+                            }
+                            result += '@@';
+                            return {
+                                carPassword: '设置-系统-空白处点8下进入',
+                                adbPassword: result
+                            };
+                        } else {
+                            return {
+                                carPassword: '设置-系统-空白处点8下进入',
+                                adbPassword: '请输入随机码'
+                            };
+                        }
+                    }
+                },
+                ruihu8proPre3: {
+                    name: '瑞虎8PRO冠军版(2.0)',
+                    countdown: 'daily',
+                    showSerialNumberInput: true,
+                    useVin: true,
+                    calculate: function(params) {
+                        const { year, month, date, serialNumber } = params;
+                        const systemPassword = '1q2w3e';
+                        let upgradePassword = '请输入VIN';
+                        if (serialNumber && serialNumber.length >= 6) {
+                            const vinLast6 = serialNumber.slice(-6);
+                            let vinNumStr = '';
+                            for (let ch of vinLast6) {
+                                if (/[0-9]/.test(ch)) vinNumStr += ch;
+                                else vinNumStr += '0';
+                            }
+                            const vinNum = parseInt(vinNumStr, 10);
+                            const base = vinNum + 123456;
+                            const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
+                            const result = (base * yymmdd) % 1000000;
+                            upgradePassword = result.toString().padStart(6, '0');
+                        }
+                        return {
+                            carPassword: '设置-系统-空白处点8下进入',
+                            systemPassword: systemPassword,
+                            upgradePassword: upgradePassword
+                        };
+                    }
+                },
+                ruihu8proPost3: {
+                    name: '瑞虎8PRO冠军版(3.0及以上)',
+                    countdown: 'daily',
+                    showSerialNumberInput: true,
+                    useVin: true,
+                    calculate: function(params) {
+                        const { year, month, date, serialNumber } = params;
+                        const systemPassword = calculateSerialNumberDailyPassword(year, month, date);
+                        let upgradePassword = '请输入VIN';
+                        if (serialNumber && serialNumber.length >= 6) {
+                            const vinLast6 = serialNumber.slice(-6);
+                            let vinNumStr = '';
+                            for (let ch of vinLast6) {
+                                if (/[0-9]/.test(ch)) vinNumStr += ch;
+                                else vinNumStr += '0';
+                            }
+                            const vinNum = parseInt(vinNumStr, 10);
+                            const base = vinNum + 123456;
+                            const yymmdd = parseInt(`${year.toString().slice(-2)}${month}${date}`, 10);
+                            const result = (base * yymmdd) % 1000000;
+                            upgradePassword = result.toString().padStart(6, '0');
+                        }
+                        return {
+                            carPassword: '设置-系统-空白处点8下进入',
+                            systemPassword: systemPassword,
+                            upgradePassword: upgradePassword
+                        };
+                    }
+                },
+                dynamic250110: {
+                    name: '250110动态算法',
+                    countdown: 'hourly',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { dateTimeNum, hours } = params;
+                        const adbFull = 250110 * dateTimeNum;
+                        const carBase = 250110 * dateTimeNum;
+                        const carFull = carBase - hours;
+                        return {
+                            carPassword: `*#${(carFull % 1000000).toString().padStart(6, '0')}#*`,
+                            adbPassword: (adbFull % 1000000).toString().padStart(6, '0')
+                        };
+                    }
+                },
+                dynamic250930: {
+                    name: '250930动态算法（CDM系统）',
+                    countdown: 'hourly',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { dateTimeNum, hours } = params;
+                        const adbFull = 250930 * dateTimeNum;
+                        const carBase = 250930 * dateTimeNum;
+                        const carFull = carBase - hours;
+                        return {
+                            carPassword: `*#${(carFull % 1000000).toString().padStart(6, '0')}#*`,
+                            adbPassword: (adbFull % 1000000).toString().padStart(6, '0')
+                        };
+                    }
+                },
+                dynamic240910: {
+                    name: '240910动态算法',
+                    countdown: 'hourly',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { mmddhh, hours } = params;
+                        const adbFull = 240910 * mmddhh;
+                        const carFull = (240910 * mmddhh) - hours;
+                        return {
+                            carPassword: `*#${(carFull % 1000000).toString().padStart(6, '0')}#*`,
+                            adbPassword: (adbFull % 1000000).toString().padStart(6, '0')
+                        };
+                    }
+                },
+                ziyouzhe000402: {
+                    name: '自由者00.04.02固定口令',
+                    countdown: 'none',
+                    showSerialNumberInput: false,
+                    calculate: function() {
+                        return { carPassword: '*#20241130#*', adbPassword: '无' };
+                    }
+                },
+                dynamic231030: {
+                    name: '231030动态算法',
+                    countdown: 'hourly',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { dateTimeNum, hours } = params;
+                        const adbFull = 231030 * dateTimeNum;
+                        const carFull = adbFull - hours;
+                        return {
+                            carPassword: `*#${(carFull % 1000000).toString().padStart(6, '0')}#*`,
+                            adbPassword: (adbFull % 1000000).toString().padStart(6, '0')
+                        };
+                    }
+                },
+                dynamic230830: {
+                    name: '230830动态算法（0406版本）',
+                    countdown: 'hourly',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { dateTimeNum, hours } = params;
+                        const adbFull = 230830 * dateTimeNum;
+                        const carFull = (230830 * dateTimeNum) - hours;
+                        return {
+                            carPassword: `*#${(carFull % 1000000).toString().padStart(6, '0')}#*`,
+                            adbPassword: (adbFull % 1000000).toString().padStart(6, '0')
+                        };
+                    }
+                },
+                x70plusChampion: {
+                    name: 'X70Plus冠军版密码',
+                    countdown: 'none',
+                    showSerialNumberInput: false,
+                    encrypted: true,
+                    calculate: function() {
+                        return {
+                            adbPassword: '*#10*#24#*'
+                        };
+                    }
+                },
+                otherCars: {
+                    name: '其他车型算法',
+                    countdown: 'hourly',
+                    showSerialNumberInput: false,
+                    calculate: function(params) {
+                        const { carModel, version, year, month, date, dateTimeNum, hours, mmddhh } = params;
+                        const passwords = [];
+                        if (carModel === 'ziyouzhe' && version === '11010x') {
+                            const adbPwd = (240910 * mmddhh) % 1000000;
+                            const carPwd = ((240910 * mmddhh) - hours) % 1000000;
+                            passwords.push(`*#${carPwd.toString().padStart(6, '0')}#*`);
+                            passwords.push(adbPwd.toString().padStart(6, '0'));
+                            passwords.push('--');
+                        } else if (carModel === 'shanhal7') {
+                            const p3 = (231030 * dateTimeNum) - hours;
+                            passwords.push('*#20201030#*');
+                            passwords.push(calculateSerialNumberDailyPassword(year, month, date));
+                            passwords.push(`*#${(p3 % 1000000).toString().padStart(6, '0')}#*`);
+                        } else {
+                            const p3 = (231030 * dateTimeNum) - hours;
+                            passwords.push('*#20201030#*');
+                            passwords.push('*#20230730#*');
+                            passwords.push(`*#${(p3 % 1000000).toString().padStart(6, '0')}#*`);
+                        }
+                        return { passwords: passwords };
+                    }
+                }
+            };
+
+            // ==================== DOM元素 ====================
+            const carModelSelect = document.getElementById('carModelSelect');
+            const versionButtonsContainer = document.getElementById('versionButtons');
+            const versionGroup = document.getElementById('versionGroup');
+            const serialNumberGroup = document.getElementById('serialNumberGroup');
+            const serialNumberInput = document.getElementById('serialNumberInput');
+            const serialLabel = document.getElementById('serialLabel');
+            const resultCard = document.getElementById('resultCard');
+            const resultArea = document.getElementById('resultArea');
+            const resultBadge = document.getElementById('resultBadge');
+            const algoBadge = document.getElementById('algoBadge');
+            const countdownBar = document.getElementById('countdownBar');
+            const countdownTimer = document.getElementById('countdownTimer');
+            const toast = document.getElementById('toast');
+
+            let currentCarModel = null;
+            let currentVersion = null;
+            let currentAlgorithmName = null;
+            let currentAlgorithm = null;
+            let countdownInterval = null;
+            let currentCountdownType = 'none';
+
+            // ==================== 初始化车型下拉框 ====================
+            function initCarModelSelect() {
+                carModelSelect.innerHTML = '<option value="">-- 请选择车型 --</option>';
+                for (const [key, config] of Object.entries(carModels)) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = config.name;
+                    carModelSelect.appendChild(option);
+                }
+            }
+
+            // ==================== 更新版本按钮组 ====================
+            function updateVersionButtons(carModelKey, selectDefault = true) {
+                versionButtonsContainer.innerHTML = '';
+                if (!carModelKey || !carModels[carModelKey]) {
+                    versionGroup.style.display = 'none';
+                    return;
+                }
+                const config = carModels[carModelKey];
+                versionGroup.style.display = 'block';
+                const defaultVer = config.defaultVersion || config.versions[0];
+                config.versions.forEach(ver => {
+                    const btn = document.createElement('button');
+                    btn.className = 'version-btn';
+                    btn.textContent = config.versionNames[ver] || ver;
+                    btn.dataset.version = ver;
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.version-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const selectedVersion = this.dataset.version;
+                        handleVersionChange(selectedVersion);
+                    });
+                    versionButtonsContainer.appendChild(btn);
+                });
+
+                if (selectDefault) {
+                    const defaultBtn = versionButtonsContainer.querySelector(`.version-btn[data-version="${defaultVer}"]`);
+                    if (defaultBtn) {
+                        defaultBtn.classList.add('active');
+                        handleVersionChange(defaultVer);
+                    } else {
+                        const firstBtn = versionButtonsContainer.querySelector('.version-btn');
+                        if (firstBtn) {
+                            firstBtn.classList.add('active');
+                            handleVersionChange(firstBtn.dataset.version);
+                        }
+                    }
+                }
+            }
+
+            // ==================== 版本切换处理 ====================
+            function handleVersionChange(versionKey) {
+                currentVersion = versionKey;
+                if (!currentCarModel || !currentVersion) {
+                    currentAlgorithmName = null;
+                    currentAlgorithm = null;
+                    serialNumberGroup.style.display = 'none';
+                    resultCard.style.display = 'none';
+                    algoBadge.style.display = 'none';
+                    clearCountdown();
+                    return;
+                }
+                const algoInfo = getAlgorithmInfo(currentCarModel, currentVersion);
+                if (algoInfo) {
+                    currentAlgorithmName = algoInfo.name;
+                    currentAlgorithm = algoInfo.algorithm;
+                    // 设置输入框标签
+                    if (currentAlgorithm.labelText) {
+                        serialLabel.textContent = currentAlgorithm.labelText;
+                        serialNumberInput.placeholder = currentAlgorithm.placeholder || '请输入';
+                    } else if (currentAlgorithm.useVin) {
+                        serialLabel.textContent = 'VIN后6位（车架号）';
+                        serialNumberInput.placeholder = '请输入VIN后6位';
+                    } else {
+                        serialLabel.textContent = '序列号（后6位）';
+                        serialNumberInput.placeholder = '请输入序列号后6位数字';
+                    }
+                    if (currentAlgorithm.showSerialNumberInput) {
+                        serialNumberGroup.style.display = 'block';
+                        serialNumberInput.value = '';
+                        doCalculate();
+                    } else {
+                        serialNumberGroup.style.display = 'none';
+                        serialNumberInput.value = '';
+                        doCalculate();
+                    }
+                } else {
+                    currentAlgorithmName = null;
+                    currentAlgorithm = null;
+                    serialNumberGroup.style.display = 'none';
+                    resultCard.style.display = 'none';
+                    algoBadge.style.display = 'none';
+                    clearCountdown();
+                }
+            }
+
+            // ==================== 获取当前算法信息 ====================
+            function getAlgorithmInfo(carModelKey, versionKey) {
+                if (!carModelKey || !versionKey || !carModels[carModelKey]) return null;
+                const config = carModels[carModelKey];
+                const algoName = config.algorithms[versionKey];
+                if (!algoName) return null;
+                const algo = algorithms[algoName];
+                if (!algo) return null;
+                return {
+                    name: algoName,
+                    algorithm: algo,
+                    config: config,
+                    version: versionKey,
+                    carModel: carModelKey
+                };
+            }
+
+            // ==================== 执行计算 ====================
+            function doCalculate() {
+                if (!currentCarModel || !currentVersion || !currentAlgorithmName || !currentAlgorithm) {
+                    resultCard.style.display = 'none';
+                    clearCountdown();
+                    return;
+                }
+
+                const timeParams = getCurrentTimeParams();
+                const algoInfo = getAlgorithmInfo(currentCarModel, currentVersion);
+                if (!algoInfo) {
+                    resultCard.style.display = 'none';
+                    clearCountdown();
+                    return;
+                }
+
+                const params = {
+                    carModel: currentCarModel,
+                    version: currentVersion,
+                    ...timeParams,
+                    serialNumber: serialNumberInput ? serialNumberInput.value.trim() : ''
+                };
+
+                let result;
+                try {
+                    result = currentAlgorithm.calculate(params);
+                } catch (e) {
+                    console.error('计算失败:', e);
+                    result = { carPassword: '计算错误', adbPassword: '计算错误' };
+                }
+
+                algoBadge.style.display = 'none';
+
+                renderResult(result, currentAlgorithmName);
+
+                currentCountdownType = currentAlgorithm.countdown || 'none';
+                updateCountdownDisplay(currentCountdownType, timeParams.now);
+                setupCountdown(currentCountdownType);
+
+                resultCard.style.display = 'block';
+                if (currentCountdownType !== 'none') {
+                    resultBadge.style.display = 'inline-block';
+                    resultBadge.textContent = '动态有效';
+                    resultBadge.className = 'card-header-badge warning';
+                } else {
+                    resultBadge.style.display = 'inline-block';
+                    resultBadge.textContent = '蓝牙拨号盘';
+                    resultBadge.className = 'card-header-badge active';
+                }
+            }
+
+            // ==================== 渲染结果 ====================
+            function renderResult(result, algoName) {
+                resultArea.innerHTML = '';
+
+                if (algoName === 'otherCars' && result.passwords && Array.isArray(result.passwords)) {
+                    const filtered = result.passwords.filter(p => p !== '--');
+                    const ul = document.createElement('ul');
+                    ul.className = 'password-list';
+
+                    const labels = [];
+                    if (currentCarModel === 'ziyouzhe' && currentVersion === '11010x') {
+                        labels.push('工程模式', '加密项');
+                    } else if (currentCarModel === 'shanhal7') {
+                        labels.push('固定密码1', '每日密码', '动态密码');
+                    } else {
+                        labels.push('固定密码1', '固定密码2', '动态密码');
+                    }
+
+                    filtered.forEach((pw, index) => {
+                        const li = document.createElement('li');
+                        const idxSpan = document.createElement('span');
+                        idxSpan.className = 'pw-index';
+                        idxSpan.textContent = index + 1;
+                        const valSpan = document.createElement('span');
+                        valSpan.className = 'pw-value';
+                        valSpan.textContent = pw;
+                        valSpan.title = pw;
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'copy-btn btn-xs';
+                        copyBtn.innerHTML = '📋 复制';
+                        copyBtn.title = '复制此密码';
+                        copyBtn.addEventListener('click', () => copyToClipboard(pw, copyBtn));
+
+                        const labelSpan = document.createElement('span');
+                        labelSpan.style.cssText =
+                            'font-size:10px;color:#999;font-weight:500;letter-spacing:0.03em;flex-shrink:0;';
+                        labelSpan.textContent = labels[index] || `密码${index + 1}`;
+
+                        li.appendChild(idxSpan);
+                        li.appendChild(labelSpan);
+                        li.appendChild(valSpan);
+                        li.appendChild(copyBtn);
+                        ul.appendChild(li);
+                    });
+                    resultArea.appendChild(ul);
+                } else if (algoName === 'dashengFixed') {
+                    const passwords = [
+                        { label: '工程模式 ①', value: result.carPassword1 || '--' },
+                        { label: '工程模式 ②', value: result.carPassword2 || '--' }
+                    ];
+                    passwords.forEach(pw => {
+                        const item = document.createElement('div');
+                        item.className = 'result-item highlight';
+                        const label = document.createElement('span');
+                        label.className = 'result-label';
+                        label.textContent = pw.label;
+                        const val = document.createElement('span');
+                        val.className = 'result-value';
+                        val.textContent = pw.value;
+                        val.title = pw.value;
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'copy-btn';
+                        copyBtn.innerHTML = '📋';
+                        copyBtn.title = '复制' + pw.label;
+                        copyBtn.addEventListener('click', () => copyToClipboard(pw.value, copyBtn));
+                        item.appendChild(label);
+                        item.appendChild(val);
+                        item.appendChild(copyBtn);
+                        resultArea.appendChild(item);
+                    });
+                } else if (algoName.startsWith('ruihu8pro') || algoName === 'hu8Daily') {
+                    const items = [];
+                    items.push({ label: '工程模式', value: result.carPassword || '设置-系统-空白处点8下进入', copy: false });
+                    items.push({ label: '升级模式', value: result.upgradeEntry || '设置-系统升级-当前已是最新版点8下', copy: false });
+                    const encPwd = result.adbPassword || result.systemPassword || '--';
+                    items.push({ label: '加密项', value: encPwd, copy: true });
+                    const upPwd = result.upgradePassword || '请输入VIN';
+                    items.push({ label: '升级密码', value: upPwd, copy: true });
+
+                    items.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'result-item highlight';
+                        const label = document.createElement('span');
+                        label.className = 'result-label';
+                        label.textContent = item.label;
+                        const val = document.createElement('span');
+                        val.className = 'result-value';
+                        val.textContent = item.value;
+                        val.title = item.value;
+                        div.appendChild(label);
+                        div.appendChild(val);
+                        if (item.copy) {
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.innerHTML = '📋';
+                            copyBtn.title = '复制' + item.label;
+                            copyBtn.addEventListener('click', () => copyToClipboard(item.value, copyBtn));
+                            div.appendChild(copyBtn);
+                        }
+                        resultArea.appendChild(div);
+                    });
+                } else if (algoName === 'x70plusChampion') {
+                    // X70Plus冠军版：没有工程模式，ADB密码受保护
+                    const item = document.createElement('div');
+                    item.className = 'result-item highlight';
+                    const label = document.createElement('span');
+                    label.className = 'result-label';
+                    label.textContent = 'ADB密码';
+                    const val = document.createElement('span');
+                    val.className = 'result-value x70plus-hidden-pw';
+                    val.style.display = 'none';
+                    val.textContent = '********';
+                    val.title = '点击显示密码';
+
+                    const revealBtn = document.createElement('button');
+                    revealBtn.className = 'copy-btn x70plus-reveal-btn';
+                    revealBtn.innerHTML = '🔓 输入密码查看';
+                    revealBtn.title = '输入动态密码查看';
+                    revealBtn.addEventListener('click', () => openX70plusModal());
+
+                    item.appendChild(label);
+                    item.appendChild(val);
+                    item.appendChild(revealBtn);
+                    resultArea.appendChild(item);
+                } else {
+                    const carPw = result.carPassword || '--';
+                    const adbPw = result.adbPassword || '--';
+                    const isSerialAlgo = (algoName === 'serialNumber');
+
+                    const item1 = document.createElement('div');
+                    item1.className = 'result-item highlight';
+                    const label1 = document.createElement('span');
+                    label1.className = 'result-label';
+                    label1.textContent = '工程模式';
+                    const val1 = document.createElement('span');
+                    val1.className = 'result-value' + (currentCountdownType !== 'none' ? ' dynamic' : '');
+                    val1.textContent = carPw;
+                    val1.title = carPw;
+                    const copy1 = document.createElement('button');
+                    copy1.className = 'copy-btn';
+                    copy1.innerHTML = '📋';
+                    copy1.title = '复制工程模式';
+                    copy1.addEventListener('click', () => copyToClipboard(carPw, copy1));
+                    item1.appendChild(label1);
+                    item1.appendChild(val1);
+                    item1.appendChild(copy1);
+
+                    const item2 = document.createElement('div');
+                    item2.className = 'result-item';
+                    const label2 = document.createElement('span');
+                    label2.className = 'result-label';
+                    label2.textContent = isSerialAlgo ? '加密项' : '加密项';
+                    const val2 = document.createElement('span');
+                    val2.className = 'result-value' + (adbPw === '无' ? ' muted' : '') + (
+                        currentCountdownType !== 'none' && adbPw !== '无' ? ' dynamic' : '');
+                    val2.textContent = adbPw;
+                    val2.title = adbPw;
+                    const copy2 = document.createElement('button');
+                    copy2.className = 'copy-btn';
+                    copy2.innerHTML = '📋';
+                    copy2.title = isSerialAlgo ? '复制加密项' : '复制加密项';
+                    copy2.addEventListener('click', () => copyToClipboard(adbPw, copy2));
+                    item2.appendChild(label2);
+                    item2.appendChild(val2);
+                    item2.appendChild(copy2);
+
+                    resultArea.appendChild(item1);
+                    resultArea.appendChild(item2);
+                }
+            }
+
+            // ==================== 复制到剪贴板 ====================
+            function copyToClipboard(text, btnElement) {
+                if (!text || text === '无' || text === '------' || text === '计算错误') return;
+                navigator.clipboard.writeText(text).then(() => {
+                    if (btnElement) {
+                        btnElement.classList.add('copied');
+                        btnElement.innerHTML = '✅ 已复制';
+                        setTimeout(() => {
+                            btnElement.classList.remove('copied');
+                            btnElement.innerHTML = '📋 复制';
+                        }, 1800);
+                    }
+                    showToast('已复制到剪贴板', 'success');
+                }).catch(() => {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try { document.execCommand('copy'); } catch (e) {}
+                    document.body.removeChild(ta);
+                    if (btnElement) {
+                        btnElement.classList.add('copied');
+                        btnElement.innerHTML = '✅ 已复制';
+                        setTimeout(() => {
+                            btnElement.classList.remove('copied');
+                            btnElement.innerHTML = '📋 复制';
+                        }, 1800);
+                    }
+                    showToast('已复制到剪贴板', 'success');
+                });
+            }
+
+            // ==================== Toast ====================
+            function showToast(message, type) {
+                toast.textContent = message;
+                toast.className = 'toast ' + (type || '');
+                toast.classList.add('show');
+                clearTimeout(toast._timeout);
+                toast._timeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+
+            // ==================== 倒计时 ====================
+            function clearCountdown() {
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                countdownBar.style.display = 'none';
+                currentCountdownType = 'none';
+            }
+
+            function setupCountdown(type) {
+                clearCountdown();
+                if (type === 'none') {
+                    countdownBar.style.display = 'none';
+                    return;
+                }
+                countdownBar.style.display = 'flex';
+                const updateFn = () => {
+                    const now = new Date();
+                    updateCountdownDisplay(type, now);
+                    if (type === 'hourly' && now.getMinutes() === 0 && now.getSeconds() === 0) {
+                        doCalculate();
+                    }
+                    if (type === 'daily' && now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() === 0) {
+                        doCalculate();
+                    }
+                };
+                updateFn();
+                countdownInterval = setInterval(updateFn, 1000);
+            }
+
+            function updateCountdownDisplay(type, now) {
+                if (type === 'hourly') {
+                    const remainingMin = 59 - now.getMinutes();
+                    const remainingSec = 59 - now.getSeconds();
+                    countdownTimer.textContent =
+                        `${String(remainingMin).padStart(2, '0')}:${String(remainingSec).padStart(2, '0')}`;
+                } else if (type === 'daily') {
+                    const remainingH = 23 - now.getHours();
+                    const remainingMin = 59 - now.getMinutes();
+                    const remainingSec = 59 - now.getSeconds();
+                    countdownTimer.textContent =
+                        `${String(remainingH).padStart(2, '0')}:${String(remainingMin).padStart(2, '0')}:${String(remainingSec).padStart(2, '0')}`;
+                } else {
+                    countdownTimer.textContent = '--:--:--';
+                }
+            }
+
+            // ==================== 事件监听 ====================
+            carModelSelect.addEventListener('change', function() {
+                const carModelKey = this.value;
+                currentCarModel = carModelKey || null;
+                currentVersion = null;
+                currentAlgorithmName = null;
+                currentAlgorithm = null;
+                serialNumberGroup.style.display = 'none';
+                serialNumberInput.value = '';
+                resultCard.style.display = 'none';
+                algoBadge.style.display = 'none';
+                clearCountdown();
+                if (currentCarModel) {
+                    updateVersionButtons(currentCarModel, true);
+                } else {
+                    versionGroup.style.display = 'none';
+                    versionButtonsContainer.innerHTML = '';
+                }
+            });
+
+            serialNumberInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9a-zA-Z]/g, '').slice(0, 6);
+                if (currentAlgorithm && currentAlgorithm.showSerialNumberInput) {
+                    doCalculate();
+                }
+            });
+
+            // ==================== 页面初始化 ====================
+            function init() {
+                initCarModelSelect();
+                versionGroup.style.display = 'none';
+                serialNumberGroup.style.display = 'none';
+                resultCard.style.display = 'none';
+                algoBadge.style.display = 'none';
+                countdownBar.style.display = 'none';
+
+                carModelSelect.value = 'traveler';
+                currentCarModel = 'traveler';
+                updateVersionButtons('traveler', true);
+            }
+
+            init();
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && currentAlgorithm && resultCard.style.display !== 'none') {
+                    doCalculate();
+                }
+            });
+
+            console.log('车载工程模式口令生成器已就绪');
+            console.log('  支持车型：' + Object.values(carModels).map(c => c.name).join('、'));
+        })();
+    </script>
+</body>
+</html>
